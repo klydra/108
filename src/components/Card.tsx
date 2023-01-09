@@ -1,11 +1,6 @@
 import React from "react";
+import {CardType} from "../models/Card"
 
-interface CardProps {
-
-}
-
-export default function Card(props: CardProps) {
-  console.log(props);
-
-  return <div>test</div>
+export default function Card(props: { card: CardType }) {
+  return <div className="bg-card-yellow p-4 border-2 border-card-purple hover:border-4">{props.card.color}</div>
 }
