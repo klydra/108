@@ -2,7 +2,7 @@ export enum CardColor {
   YELLOW,
   GREEN,
   BLUE,
-  PURPLE,
+  PURPLE
 }
 
 export enum CardFace {

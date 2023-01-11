@@ -11,7 +11,8 @@ module.exports = {
       'card-green': "#CAFFBF",
       'card-blue': "#9BF6FF",
       'card-purple': "#BDB2FF",
-      },
+      'card-accent': "#FFFFFF"
+    },
   },
   plugins: [],
 }

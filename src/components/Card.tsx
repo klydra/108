@@ -2,5 +2,13 @@ import React from "react";
 import {CardType} from "../models/Card"
 
 export default function Card(props: { card: CardType }) {
-  return <div className="bg-card-yellow p-4 border-2 border-card-purple hover:border-4">{props.card.color}</div>
+  console.log(props.card)
+
+  return <div className="h-52 aspect-[9/16] rounded p-1 bg-card-accent">
+    <div className="rounded bg-card-purple w-full h-full">
+      <div className="text-[6rem] flex justify-center items-center w-full h-full">
+        <p className="leading-none">5</p>
+      </div>
+    </div>
+  </div>
 }
