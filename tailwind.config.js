@@ -7,6 +7,10 @@ module.exports = {
     extend: {
       borderRadius: {
         'card-inner': "50%"
+      },
+      rotate: {
+        'card-angle': "24deg",
+        'card-back-angle': "40deg"
       }
     },
     colors: {
@@ -15,7 +19,9 @@ module.exports = {
       'card-green': "#CAFFBF",
       'card-blue': "#9BF6FF",
       'card-purple': "#BDB2FF",
-      'card-accent': "#f2f2f2"
+      'card-accent': "#F2F2F2",
+      'card-back': "#000000",
+      'card-back-text': "#1C18F0"
     },
   },
   plugins: [],
