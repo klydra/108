@@ -5,6 +5,10 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        default: ["Azeret Mono", "monospace"],
+        card: ["Inter", "sans-serif"],
+      },
       borderRadius: {
         'card-inner': "50%"
       },
