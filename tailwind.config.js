@@ -21,7 +21,8 @@ module.exports = {
       'card-purple': "#BDB2FF",
       'card-accent': "#F2F2F2",
       'card-back': "#000000",
-      'card-back-text': "#1C18F0"
+      'card-back-text': "#1C18F0",
+      'table-background': "#666666"
     },
   },
   plugins: [],
