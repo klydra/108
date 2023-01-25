@@ -1,5 +1,9 @@
 {
   "rules": {
-    "semicolon": [true, "always"]
+    "semicolon": [true, "always"],
+    "encoding": true,
+    "align": true,
+    "forin": true,
+    "import-spacing": true
   }
 }
