@@ -10,11 +10,11 @@ export default function CardFront(props: { card: CardType }) {
     </div>
     <div className="bg-card-purple flex justify-center items-center w-full h-[74%]">
       <div className="-rotate-card-angle rounded-card-inner flex justify-center items-center bg-card-accent flex justify-center items-center w-full h-[110%]">
-        <p className="rotate-card-angle text-[7rem] flex justify-center items-center w-full h-full text-background leading-none"><Face face={props.card.face} /></p>
+        <p className="font-card rotate-card-angle text-[7rem] flex justify-center items-center w-full h-full text-background leading-none"><Face face={props.card.face} /></p>
       </div>
     </div>
     <div className="w-full h-[13%] rounded-b-lg bg-card-purple">
-      <p className=" text-[1.5rem] pl-1.5 pb-1 flex justify-start items-end w-full h-full text-background leading-none"><Face face={props.card.face} /></p>
+      <p className="font-default text-[1.5rem] pl-1.5 pb-1 flex justify-start items-end w-full h-full text-background leading-none"><Face face={props.card.face} /></p>
     </div>
   </div>
 }
