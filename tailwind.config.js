@@ -19,6 +19,7 @@ module.exports = {
     },
     colors: {
       background: "#171819",
+      signature: "#FFA071",
       'card-yellow': "#FDFFB6",
       'card-green': "#CAFFBF",
       'card-blue': "#9BF6FF",
