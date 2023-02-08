@@ -6,14 +6,14 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        default: ["Azeret Mono", "monospace"],
-        card: ["Inter", "sans-serif"],
+        card: ["Azeret Mono", "monospace"],
+        default: ["Inter", "sans-serif"],
       },
       borderRadius: {
         'card-inner': "50%"
       },
       rotate: {
-        'card-angle': "24deg",
+        'card-angle': "30deg",
         'card-back-angle': "40deg"
       }
     },
