@@ -2,7 +2,10 @@ module main
 
 go 1.20
 
-require github.com/pocketbase/pocketbase v0.12.2
+require (
+	github.com/oklog/ulid/v2 v2.1.0
+	github.com/pocketbase/pocketbase v0.12.2
+)
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6 // indirect

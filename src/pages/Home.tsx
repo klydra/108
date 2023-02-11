@@ -1,17 +1,10 @@
 import React, {Component} from "react";
-import {Session, Subscription, User} from "@supabase/supabase-js";
 import CardFront from "../components/CardFront";
 import {CardColor, CardFace, CardType} from "../models/Card";
 
-interface HomeProps {
+interface HomeProps { }
 
-}
-
-interface HomeState {
-    user: User | null,
-    auth: Subscription | null,
-    session: Session | null
-}
+interface HomeState { }
 
 export default class Home extends Component<HomeProps, HomeState> {
 
