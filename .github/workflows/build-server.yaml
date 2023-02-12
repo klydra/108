@@ -1,0 +1,52 @@
+name: Build Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-server:
+    name: Build pocketbase Server executable
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout files
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.20.0'
+
+      - name: Download dependencies
+        working-directory: server
+        run: go mod download
+
+      - name: Get current HASH
+        id: get_hash
+        run: echo 'hash='$(git rev-parse --short HEAD) >> $GITHUB_OUTPUT
+
+      - name: Create /build folder
+        working-directory: server
+        run: mkdir build
+
+      - name: Build application
+        working-directory: server
+        run: go build -ldflags="-w -s" -o build/server
+        env:
+          GOOS: linux
+          ARCH: amd64
+          CGO_ENABLED: 0
+
+      - name: Compress executable
+        working-directory: server/build
+        run: tar -czvf server.tar.gz server
+
+      - name: Create new Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.get_hash.outputs.hash }}
+          name: ${{ steps.get_hash.outputs.hash }}
+          artifacts: 'server/build/server,server/build/server.tar.gz'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
