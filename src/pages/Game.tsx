@@ -17,7 +17,7 @@ export default class Game extends Component<any, any> {
     return (
       <>
         {/* Table */}
-        <div className="flex justify-center items-center bg-background h-[100vh] w-[100vw] px-[10%] py-[10%]">
+        <div className="flex justify-center items-center bg-background h-[100vh] w-[100vw] px-[5%] py-[5%]">
           <div className="bg-table-background h-full w-full rounded-2xl drop-shadow-[0_5px_5px_rgba(255,255,255,0.25)] shadow-card-yellow"></div>
         </div>
 
@@ -28,16 +28,17 @@ export default class Game extends Component<any, any> {
           <CardFront card={card} />
           <CardFront card={card} />
           <CardFront card={card} />
+          <CardFront card={card} />
         </div>
 
         {/* Left card row */}
-        <div className="fixed w-44 h-[80%] inset-y-[10%] left-[1%] ">
+      <div className="fixed w-44 h-[80%] inset-y-[10%] left-[1%] rotate-180 flex flex-col justify-center items-end">
           <CardBack rotated />
         </div>
 
         {/* Right card row */}
         <div className="fixed w-44 h-[80%] inset-y-[10%] right-[1%] flex flex-col justify-center items-end">
-          <CardBack />
+          <CardBack rotated/>
         </div>
 
         {/* Top card row */}
