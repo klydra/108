@@ -12,7 +12,7 @@ module.exports = {
       },
       rotate: {
         "card-angle": "30deg",
-        "card-back-angle": "40deg",
+        "card-back-angle": "60deg",
       },
       strokeWidth: {
         "card-block-outer": "5rem",
