@@ -14,41 +14,51 @@ export default function CardFront(props: { card: CardType }) {
 
 function Card(props: { card: CardType }) {
   return (
-    <div className="overflow-hidden h-52 aspect-[9/16] rounded-2xl p-0.5 bg-card-accent">
-      <div
-        className={
-          "w-full h-[13%] rounded-t-[0.9rem] bg-card-" + props.card.color
-        }
-      >
-        <div className="font-card text-[1.5rem] pr-1.5 pt-1 flex justify-end items-start w-full h-full text-background leading-none">
-          <CardIcon face={props.card.face} weight={CardIconWeight.OUTER} />
+    <>
+      <div className="select-none overflow-hidden h-52 min-h-fit min-w-fit aspect-[9/16] rounded-2xl p-0.5 bg-card-accent">
+        {/* Top of card */}
+        <div
+          className={
+            "w-full h-[13%] rounded-t-[0.9rem] bg-card-" + props.card.color
+          }
+        >
+          <div className="pr-1.5 pt-1 flex justify-end items-start w-full h-full text-background leading-none">
+            <CardIcon face={props.card.face} weight={CardIconWeight.OUTER} />
+          </div>
         </div>
-      </div>
-      <div
-        className={
-          "flex justify-center items-center w-full h-[74%] bg-card-" +
-          props.card.color
-        }
-      >
-        <div className="-rotate-card-angle rounded-card-inner flex justify-center items-center p-[0.2rem] bg-card-accent flex justify-center items-center w-[85%] h-[115%]">
-          <div className="w-full h-full rounded-card-inner bg-card-inner">
-            <div className="rotate-card-angle flex justify-center items-center w-full h-full">
-              <CardIcon face={props.card.face} weight={CardIconWeight.INNER} />
+        {/* Center ellipsis */}
+        <div
+          className={
+            "flex justify-center items-center w-full h-[74%] bg-card-" +
+            props.card.color
+          }
+        >
+          <div className="-rotate-card-angle rounded-card-inner flex justify-center items-center p-[0.2rem] bg-card-accent flex justify-center items-center w-[85%] h-[115%]">
+            <div className="w-full h-full rounded-card-inner bg-card-inner">
+              <div className="rotate-card-angle flex justify-center items-center w-full h-full">
+                <CardIcon
+                  face={props.card.face}
+                  weight={CardIconWeight.INNER}
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div
-        className={
-          "w-full h-[13%] rounded-b-[0.9rem] bg-card-" + props.card.color
-        }
-      >
-        <div className="pl-1.5 pb-1 flex justify-start items-end w-full h-full">
-          <CardIcon face={props.card.face} weight={CardIconWeight.OUTER} />
+        {/* Bottom of card */}
+        <div
+          className={
+            "w-full h-[13%] rounded-b-[0.9rem] bg-card-" + props.card.color
+          }
+        >
+          <div className="pl-1.5 pb-1 flex justify-start items-end w-full h-full">
+            <CardIcon face={props.card.face} weight={CardIconWeight.OUTER} />
+          </div>
         </div>
+        {/* Preload bg-classes at compile time */}
       </div>
+      {/* Preload bg-classes at compile time */}
       <div className="hidden bg-card-yellow bg-card-green bg-card-blue bg-card-purple"></div>
-    </div>
+    </>
   );
 }
 
@@ -76,7 +86,7 @@ function CardIcon(props: { face: CardFace; weight: CardIconWeight }) {
 
 function WishCard(props: { card: CardType }) {
   return (
-    <div className="overflow-hidden h-52 aspect-[9/16] rounded-2xl p-0.5 bg-card-accent">
+    <div className="select-none overflow-hidden h-52 min-h-fit min-w-fit aspect-[9/16] rounded-2xl p-0.5 bg-card-accent">
       <div className="relative w-full h-full">
         <div className="absolute grid grid-cols-2 grid-rows-2 gap-0 h-full w-full rounded-[0.9rem]">
           <div className="w-full h-full bg-card-yellow rounded-tl-[0.9rem]"></div>
