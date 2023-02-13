@@ -37,7 +37,7 @@ func init() {
 					"id": "resdif92",
 					"name": "players",
 					"type": "json",
-					"required": false,
+					"required": true,
 					"unique": false,
 					"options": {}
 				},
@@ -59,7 +59,7 @@ func init() {
 					"id": "a9cxrz8j",
 					"name": "rules",
 					"type": "json",
-					"required": false,
+					"required": true,
 					"unique": false,
 					"options": {}
 				},
@@ -68,7 +68,7 @@ func init() {
 					"id": "0zbw13nx",
 					"name": "stack",
 					"type": "json",
-					"required": false,
+					"required": true,
 					"unique": false,
 					"options": {}
 				}

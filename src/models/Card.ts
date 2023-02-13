@@ -1,8 +1,8 @@
 export enum CardColor {
-  YELLOW = "yellow",
-  GREEN = "green",
-  BLUE = "blue",
-  PURPLE = "purple",
+  YELLOW = "y",
+  GREEN = "g",
+  BLUE = "b",
+  PURPLE = "p",
 }
 
 export enum CardFace {
@@ -16,11 +16,11 @@ export enum CardFace {
   NUMBER_7 = "7",
   NUMBER_8 = "8",
   NUMBER_9 = "9",
-  BLOCK = "block",
-  DIRECTION_CHANGE = "direction",
-  WISH = "wish",
-  PLUS_2 = "plus2",
-  WISH_PLUS_4 = "plus4",
+  BLOCK = "d",
+  DIRECTION_CHANGE = "d",
+  WISH = "w",
+  PLUS_2 = "p2",
+  WISH_PLUS_4 = "p4",
 }
 
 export enum CardIconWeight {

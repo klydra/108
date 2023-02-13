@@ -10,6 +10,7 @@ import (
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 
@@ -32,9 +33,45 @@ type Player struct {
 }
 
 type Rules struct {
-	Count  int  `json:"count" xml:"count"`
-	Swap   bool `json:"swap" xml:"swap"`
-	Rotate bool `json:"rotate" xml:"rotate"`
+	Count     int  `json:"count" xml:"count"`
+	Hole      bool `json:"hole" xml:"hole"`
+	Stack2    bool `json:"stack2" xml:"stack2"`
+	Stack4    bool `json:"stack4" xml:"stack4"`
+	Swap      bool `json:"swap" xml:"swap"`
+	Rotate    bool `json:"rotate" xml:"rotate"`
+	Throw     bool `json:"throw" xml:"throw"`
+	Unlimited bool `json:"unlimited" xml:"unlimited"`
+	Ordered   bool `json:"ordered" xml:"ordered"`
+}
+
+var DECK = []string{
+	"0y", "0g", "0b", "0p",
+	"1y", "1g", "1b", "1p",
+	"1y", "1g", "1b", "1p",
+	"2y", "2g", "2b", "2p",
+	"2y", "2g", "2b", "2p",
+	"3y", "3g", "3b", "3p",
+	"3y", "3g", "3b", "3p",
+	"4y", "4g", "4b", "4p",
+	"4y", "4g", "4b", "4p",
+	"5y", "5g", "5b", "5p",
+	"5y", "5g", "5b", "5p",
+	"6y", "6g", "6b", "6p",
+	"6y", "6g", "6b", "6p",
+	"7y", "7g", "7b", "7p",
+	"7y", "7g", "7b", "7p",
+	"8y", "8g", "8b", "8p",
+	"8y", "8g", "8b", "8p",
+	"9y", "9g", "9b", "9p",
+	"9y", "9g", "9b", "9p",
+	"by", "bg", "bb", "bp",
+	"by", "bg", "bb", "bp",
+	"dy", "dg", "db", "dp",
+	"dy", "dg", "db", "dp",
+	"py", "pg", "pb", "pp",
+	"py", "pg", "pb", "pp",
+	"wd", "wd", "wd", "wd",
+	"pd", "pd", "pd", "pd",
 }
 
 func main() {
@@ -85,6 +122,7 @@ func main() {
 
 			record := models.NewRecord(collection)
 			record.Set("name", ulid.Make().String())
+			record.Set("cards", "[]")
 
 			err = app.Dao().SaveRecord(record)
 			if err != nil {
@@ -95,19 +133,42 @@ func main() {
 		})
 
 		e.Router.POST("/session/create", func(c echo.Context) error {
+			// Retrieve target user
+			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
+			if err != nil {
+				return apis.NewBadRequestError("Couldn't find user.", err)
+			}
+
 			collection, err := app.Dao().FindCollectionByNameOrId("games")
 			if err != nil {
 				return apis.NewApiError(500, "Couldn't access game database.", err)
 			}
 
-			rules, err := json.Marshal(Rules{Count: 7, Swap: false, Rotate: false})
+			players, err := json.Marshal(Player{Name: user.GetString("name"), Cards: 0, Called: false})
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't generate default rules.", err)
+			}
+
+			rules, err := json.Marshal(Rules{
+				Count:     7,
+				Hole:      false,
+				Stack2:    false,
+				Stack4:    false,
+				Swap:      false,
+				Rotate:    false,
+				Throw:     false,
+				Unlimited: false,
+				Ordered:   false,
+			})
 			if err != nil {
 				return apis.NewApiError(500, "Couldn't generate default rules.", err)
 			}
 
 			record := models.NewRecord(collection)
 			record.Set("code", ulid.Make().String())
+			record.Set("players", players)
 			record.Set("rules", rules)
+			record.Set("stack", "[]")
 
 			err = app.Dao().SaveRecord(record)
 			if err != nil {
@@ -204,6 +265,78 @@ func main() {
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
 			if err != nil {
 				return apis.NewApiError(500, "User participating in absent game.", err)
+			}
+
+			var rules Rules
+			err = json.Unmarshal([]byte(game.GetString("rules")), &rules)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get rules.", err)
+			}
+
+			var players []Player
+			err = json.Unmarshal([]byte(game.GetString("players")), &players)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get players.", err)
+			}
+
+			if !rules.Unlimited {
+				give := len(players) * rules.Count
+				var stack []string
+
+				for give*2 < len(stack) {
+					stack = append(stack, DECK...)
+				}
+
+				for i := 0; i < len(players); i++ {
+					var hand []string
+
+					for i := 0; i < rules.Count; i++ {
+						index := rand.Intn(len(stack))
+						hand = append(hand, stack[index])
+						stack = append(stack[:index], stack[index+1:]...)
+					}
+
+					user, err := app.Dao().FindFirstRecordByData("users", "name", players[i].Name)
+					if err != nil {
+						return apis.NewApiError(500, "Couldn't retrieve player "+players[i].Name+".", err)
+					}
+
+					cards, err := json.Marshal(append(players[:i], players[i+1:]...))
+					if err != nil {
+						return apis.NewApiError(500, "Couldn't generate player hand update.", err)
+					}
+
+					user.Set("hand", cards)
+					err = app.Dao().SaveRecord(user)
+					if err != nil {
+						return apis.NewApiError(500, "Couldn't assign player hand.", err)
+					}
+				}
+			} else {
+				for i := 0; i < len(players); i++ {
+					var hand []string
+
+					for i := 0; i < rules.Count; i++ {
+						index := rand.Intn(len(DECK))
+						hand = append(hand, DECK[index])
+					}
+
+					user, err := app.Dao().FindFirstRecordByData("users", "name", players[i].Name)
+					if err != nil {
+						return apis.NewApiError(500, "Couldn't retrieve player "+players[i].Name+".", err)
+					}
+
+					cards, err := json.Marshal(append(players[:i], players[i+1:]...))
+					if err != nil {
+						return apis.NewApiError(500, "Couldn't generate player hand update.", err)
+					}
+
+					user.Set("hand", cards)
+					err = app.Dao().SaveRecord(user)
+					if err != nil {
+						return apis.NewApiError(500, "Couldn't assign player hand.", err)
+					}
+				}
 			}
 
 			game.Set("live", user.GetString("name"))
@@ -312,6 +445,23 @@ func main() {
 			}
 
 			return c.JSON(http.StatusOK, Session{Code: game.Id})
+		})
+
+		e.Router.POST("/game/draw", func(c echo.Context) error {
+			collection, err := app.Dao().FindCollectionByNameOrId("players")
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't access player database.", err)
+			}
+
+			record := models.NewRecord(collection)
+			record.Set("name", ulid.Make().String())
+
+			err = app.Dao().SaveRecord(record)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't create player record.", err)
+			}
+
+			return c.JSON(http.StatusOK, Registration{Name: record.GetString("name"), Token: record.Id})
 		})
 
 		return nil

@@ -1,5 +1,5 @@
 import React from "react";
-import { CardFace, CardIconWeight, CardType } from "../models/Card";
+import { CardColor, CardFace, CardIconWeight, CardType } from "../models/Card";
 
 export default function CardFront(props: { card: CardType }) {
   switch (props.card.face) {
@@ -13,15 +13,24 @@ export default function CardFront(props: { card: CardType }) {
 }
 
 function Card(props: { card: CardType }) {
+  function color() {
+    switch (props.card.color) {
+      case CardColor.YELLOW:
+        return "yellow";
+      case CardColor.GREEN:
+        return "green";
+      case CardColor.BLUE:
+        return "blue";
+      case CardColor.PURPLE:
+        return "purple";
+    }
+  }
+
   return (
     <>
       <div className="select-none overflow-hidden h-52 min-h-fit min-w-fit aspect-[9/16] rounded-2xl p-0.5 bg-card-accent">
         {/* Top of card */}
-        <div
-          className={
-            "w-full h-[13%] rounded-t-[0.9rem] bg-card-" + props.card.color
-          }
-        >
+        <div className={"w-full h-[13%] rounded-t-[0.9rem] bg-card-" + color()}>
           <div className="pr-1.5 pt-1 flex justify-end items-start w-full h-full text-background leading-none">
             <CardIcon face={props.card.face} weight={CardIconWeight.OUTER} />
           </div>
@@ -29,8 +38,7 @@ function Card(props: { card: CardType }) {
         {/* Center ellipsis */}
         <div
           className={
-            "flex justify-center items-center w-full h-[74%] bg-card-" +
-            props.card.color
+            "flex justify-center items-center w-full h-[74%] bg-card-" + color()
           }
         >
           <div className="-rotate-card-angle rounded-card-inner flex justify-center items-center p-[0.2rem] bg-card-accent flex justify-center items-center w-[85%] h-[115%]">
@@ -45,11 +53,7 @@ function Card(props: { card: CardType }) {
           </div>
         </div>
         {/* Bottom of card */}
-        <div
-          className={
-            "w-full h-[13%] rounded-b-[0.9rem] bg-card-" + props.card.color
-          }
-        >
+        <div className={"w-full h-[13%] rounded-b-[0.9rem] bg-card-" + color()}>
           <div className="pl-1.5 pb-1 flex justify-start items-end w-full h-full">
             <CardIcon face={props.card.face} weight={CardIconWeight.OUTER} />
           </div>

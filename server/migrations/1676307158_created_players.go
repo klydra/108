@@ -48,7 +48,7 @@ func init() {
 				{
 					"system": false,
 					"id": "yoc3plly",
-					"name": "cards",
+					"name": "hand",
 					"type": "json",
 					"required": true,
 					"unique": false,
