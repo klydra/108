@@ -591,7 +591,7 @@ func main() {
 
 			game.Set("players", playersUpdate)
 			game.Set("stack", stackUpdate)
-			user.Set("stack", cardsUpdate)
+			user.Set("cards", cardsUpdate)
 
 			err = app.Dao().SaveRecord(game)
 			if err != nil {
@@ -672,7 +672,7 @@ func main() {
 
 			game.Set("players", playersUpdate)
 			game.Set("stack", stackUpdate)
-			user.Set("stack", cardsUpdate)
+			user.Set("cards", cardsUpdate)
 
 			err = app.Dao().SaveRecord(game)
 			if err != nil {
