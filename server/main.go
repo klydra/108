@@ -484,8 +484,169 @@ func main() {
 			index := rand.Intn(len(stack))
 			card := stack[index]
 			stack = append(stack[:index], stack[index+1:]...)
-
 			cards = append(cards, card)
+
+			for i := 0; i < len(players); i++ {
+				if players[i].Name == user.GetString("name") {
+					players[i].Cards = len(cards)
+					break
+				}
+			}
+
+			playersUpdate, err := json.Marshal(players)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get game players update.", err)
+			}
+
+			stackUpdate, err := json.Marshal(stack)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get game stack update.", err)
+			}
+
+			cardsUpdate, err := json.Marshal(cards)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get user cards update.", err)
+			}
+
+			game.Set("players", playersUpdate)
+			game.Set("stack", stackUpdate)
+			user.Set("stack", cardsUpdate)
+
+			err = app.Dao().SaveRecord(game)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't create player record.", err)
+			}
+
+			err = app.Dao().SaveRecord(user)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't create player record.", err)
+			}
+
+			return c.JSON(http.StatusOK, Hand{Cards: cards})
+		})
+
+		e.Router.POST("/game/play", func(c echo.Context) error {
+			// Retrieve target user
+			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
+			if err != nil {
+				return apis.NewBadRequestError("Couldn't find user.", err)
+			}
+
+			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
+			if err != nil {
+				return apis.NewBadRequestError("User not participating in game.", err)
+			}
+
+			var cards []string
+			err = json.Unmarshal([]byte(user.GetString("cards")), &cards)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get player cards.", err)
+			}
+
+			var players []Player
+			err = json.Unmarshal([]byte(game.GetString("players")), &players)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get game players.", err)
+			}
+
+			var stack []string
+			err = json.Unmarshal([]byte(game.GetString("stack")), &stack)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get game card stack.", err)
+			}
+
+			var index int
+			for i := 0; i < len(cards); i++ {
+				if cards[i] == c.Request().Header.Get("card") {
+					index = i
+					break
+				}
+			}
+
+			card := cards[index]
+			cards = append(cards[:index], cards[index+1:]...)
+			stack = append(stack, card)
+
+			for i := 0; i < len(players); i++ {
+				if players[i].Name == user.GetString("name") {
+					players[i].Cards = len(cards)
+					break
+				}
+			}
+
+			playersUpdate, err := json.Marshal(players)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get game players update.", err)
+			}
+
+			stackUpdate, err := json.Marshal(stack)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get game stack update.", err)
+			}
+
+			cardsUpdate, err := json.Marshal(cards)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get user cards update.", err)
+			}
+
+			game.Set("players", playersUpdate)
+			game.Set("stack", stackUpdate)
+			user.Set("stack", cardsUpdate)
+
+			err = app.Dao().SaveRecord(game)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't create player record.", err)
+			}
+
+			err = app.Dao().SaveRecord(user)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't create player record.", err)
+			}
+
+			return c.JSON(http.StatusOK, Hand{Cards: cards})
+		})
+
+		e.Router.POST("/game/wish", func(c echo.Context) error {
+			// Retrieve target user
+			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
+			if err != nil {
+				return apis.NewBadRequestError("Couldn't find user.", err)
+			}
+
+			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
+			if err != nil {
+				return apis.NewBadRequestError("User not participating in game.", err)
+			}
+
+			var cards []string
+			err = json.Unmarshal([]byte(user.GetString("cards")), &cards)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get player cards.", err)
+			}
+
+			var players []Player
+			err = json.Unmarshal([]byte(game.GetString("players")), &players)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get game players.", err)
+			}
+
+			var stack []string
+			err = json.Unmarshal([]byte(game.GetString("stack")), &stack)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get game card stack.", err)
+			}
+
+			var index int
+			for i := 0; i < len(cards); i++ {
+				if cards[i] == c.Request().Header.Get("card") {
+					index = i
+					break
+				}
+			}
+
+			card := cards[index]
+			cards = append(cards[:index], cards[index+1:]...)
+			stack = append(stack, card)
 
 			for i := 0; i < len(players); i++ {
 				if players[i].Name == user.GetString("name") {
