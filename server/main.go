@@ -21,10 +21,20 @@ type Registration struct {
 	Token string `json:"token" xml:"token"`
 }
 
+type Creation struct {
+	Code string `json:"code" xml:"code"`
+}
+
 type Player struct {
 	Name   string `json:"name" xml:"name"`
 	Cards  int    `json:"cards" xml:"cards"`
 	Called bool   `json:"called" xml:"called"`
+}
+
+type Rules struct {
+	Count  int  `json:"count" xml:"count"`
+	Swap   bool `json:"swap" xml:"swap"`
+	Rotate bool `json:"rotate" xml:"rotate"`
 }
 
 func main() {
@@ -82,14 +92,37 @@ func main() {
 			return c.JSON(http.StatusOK, Registration{Name: record.GetString("name"), Token: record.Id})
 		})
 
+		e.Router.POST("/session/create", func(c echo.Context) error {
+			collection, err := app.Dao().FindCollectionByNameOrId("games")
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't access game database.", err)
+			}
+
+			rules, err := json.Marshal(Rules{Count: 7, Swap: false, Rotate: false})
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't generate default rules.", err)
+			}
+
+			record := models.NewRecord(collection)
+			record.Set("code", ulid.Make().String())
+			record.Set("rules", rules)
+
+			err = app.Dao().SaveRecord(record)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't create player record.", err)
+			}
+
+			return c.JSON(http.StatusOK, Creation{Code: record.GetString("code")})
+		})
+
 		e.Router.POST("/session/join", func(c echo.Context) error {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't find user.", err)
+				return apis.NewBadRequestError("Couldn't find user.", err)
 			}
 
-			if len(user.GetString("game")) > 0 {
+			if len(user.GetString("game")) != 0 {
 				// Check for ongoing game
 				game, err := app.Dao().FindRecordById("games", user.GetString("game"))
 
@@ -130,7 +163,7 @@ func main() {
 			// Retrieve target game to join
 			game, err := app.Dao().FindFirstRecordByData("games", "code", c.Request().Header.Get("code"))
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't find game.", err)
+				return apis.NewBadRequestError("Couldn't find game.", err)
 			}
 
 			var players []string
@@ -149,6 +182,91 @@ func main() {
 			err = app.Dao().SaveRecord(game)
 			if err != nil {
 				return apis.NewApiError(500, "Couldn't add player to game.", err)
+			}
+
+			return c.NoContent(http.StatusOK)
+		})
+
+		e.Router.POST("/session/rules", func(c echo.Context) error {
+			// Retrieve target user
+			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
+			if err != nil {
+				return apis.NewBadRequestError("Couldn't find user.", err)
+			}
+
+			if len(user.GetString("game")) == 0 {
+				return apis.NewBadRequestError("User not participating in game.", err)
+			}
+
+			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
+			if err != nil {
+				user.Set("game", "")
+				err = app.Dao().SaveRecord(user)
+				if err != nil {
+					return apis.NewApiError(500, "Couldn't remove user from dead game.", err)
+				}
+
+				return apis.NewBadRequestError("User not participating in game.", err)
+			}
+
+			var rules Rules
+			err = json.Unmarshal([]byte(c.Request().Header.Get("rules")), &rules)
+			if err != nil {
+				return apis.NewBadRequestError("Invalid rules provided.", err)
+			}
+
+			game.Set("rules", rules)
+			err = app.Dao().SaveRecord(game)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't save rules for game.", err)
+			}
+
+			return c.NoContent(http.StatusOK)
+		})
+
+		e.Router.POST("/session/leave", func(c echo.Context) error {
+			// Retrieve target user
+			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
+			if err != nil {
+				return apis.NewBadRequestError("Couldn't find user.", err)
+			}
+
+			if len(user.GetString("game")) != 0 {
+				// Check for ongoing game
+				game, err := app.Dao().FindRecordById("games", user.GetString("game"))
+
+				if err == nil {
+					// Retrieve ongoing game player data
+					var players []Player
+					err = json.Unmarshal([]byte(game.GetString("players")), &players)
+					if err != nil {
+						return apis.NewApiError(500, "Couldn't get ongoing players.", err)
+					}
+
+					// Remove player from ongoing game
+					for i := 0; i < len(players); i++ {
+						if players[i].Name == user.Get("name") {
+							updated, err := json.Marshal(append(players[:i], players[i+1:]...))
+							if err != nil {
+								return apis.NewApiError(500, "Couldn't generate ongoing update request.", err)
+							}
+
+							game.Set("players", updated)
+							err = app.Dao().SaveRecord(game)
+							if err != nil {
+								return apis.NewApiError(500, "Couldn't remove player from ongoing game.", err)
+							}
+							break
+						}
+					}
+				}
+
+				// Remove ongoing game from player
+				user.Set("game", "")
+				err = app.Dao().SaveRecord(user)
+				if err != nil {
+					return apis.NewApiError(500, "Couldn't update player game.", err)
+				}
 			}
 
 			return c.NoContent(http.StatusOK)

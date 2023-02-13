@@ -53,6 +53,15 @@ func init() {
 						"max": 15,
 						"pattern": "^[A-Z0-9]+$"
 					}
+				},
+				{
+					"system": false,
+					"id": "a9cxrz8j",
+					"name": "rules",
+					"type": "json",
+					"required": false,
+					"unique": false,
+					"options": {}
 				}
 			],
 			"listRule": null,
