@@ -62,6 +62,15 @@ func init() {
 					"required": false,
 					"unique": false,
 					"options": {}
+				},
+				{
+					"system": false,
+					"id": "0zbw13nx",
+					"name": "stack",
+					"type": "json",
+					"required": false,
+					"unique": false,
+					"options": {}
 				}
 			],
 			"listRule": null,
