@@ -21,7 +21,7 @@ type Registration struct {
 	Token string `json:"token" xml:"token"`
 }
 
-type Creation struct {
+type Session struct {
 	Code string `json:"code" xml:"code"`
 }
 
@@ -112,7 +112,7 @@ func main() {
 				return apis.NewApiError(500, "Couldn't create player record.", err)
 			}
 
-			return c.JSON(http.StatusOK, Creation{Code: record.GetString("code")})
+			return c.JSON(http.StatusOK, Session{Code: record.GetString("code")})
 		})
 
 		e.Router.POST("/session/join", func(c echo.Context) error {
@@ -270,6 +270,31 @@ func main() {
 			}
 
 			return c.NoContent(http.StatusOK)
+		})
+
+		e.Router.POST("/session/ongoing", func(c echo.Context) error {
+			// Retrieve target user
+			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
+			if err != nil {
+				return apis.NewBadRequestError("Couldn't find user.", err)
+			}
+
+			if len(user.GetString("game")) == 0 {
+				return apis.NewBadRequestError("User not participating in game.", err)
+			}
+
+			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
+			if err != nil {
+				user.Set("game", "")
+				err = app.Dao().SaveRecord(user)
+				if err != nil {
+					return apis.NewApiError(500, "Couldn't remove user from dead game.", err)
+				}
+
+				return apis.NewBadRequestError("User not participating in game.", err)
+			}
+
+			return c.JSON(http.StatusOK, Session{Code: game.Id})
 		})
 
 		return nil
