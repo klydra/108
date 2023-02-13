@@ -1,18 +1,24 @@
 package main
 
 import (
-	"log"
-	"os"
-	"path/filepath"
-	"strings"
-
+	"github.com/labstack/echo/v5"
+	"github.com/oklog/ulid/v2"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
+	"log"
+	"net/http"
+	"os"
 
 	_ "main/migrations"
 )
+
+type Player struct {
+	Name string `json:"name" xml:"name"`
+	Pass string `json:"pass" xml:"pass"`
+}
 
 func main() {
 	app := pocketbase.New()
@@ -37,14 +43,6 @@ func main() {
 		"enable/disable auto migrations",
 	)
 
-	var publicDir string
-	app.RootCmd.PersistentFlags().StringVar(
-		&publicDir,
-		"publicDir",
-		defaultPublicDir(),
-		"the directory to serve static files",
-	)
-
 	var indexFallback bool
 	app.RootCmd.PersistentFlags().BoolVar(
 		&indexFallback,
@@ -56,32 +54,46 @@ func main() {
 	app.RootCmd.ParseFlags(os.Args[1:])
 
 	// ---------------------------------------------------------------
-	// Plugins and hooks:
+	// Custom routes:
 	// ---------------------------------------------------------------
 
-	// migrate command (with js templates)
+	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
+		// or you can also use the shorter e.Router.GET("/articles/:slug", handler, middlewares...)
+		e.Router.POST("/user/register", func(c echo.Context) error {
+			collection, err := app.Dao().FindCollectionByNameOrId("players")
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't access player database.", err)
+			}
+
+			name := ulid.Make().String()
+			pass := ulid.Make().String()
+
+			record := models.NewRecord(collection)
+			record.Set("name", name)
+			record.Set("pass", pass)
+
+			err = app.Dao().SaveRecord(record)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't create player record.", err)
+			}
+
+			return c.JSON(http.StatusOK, Player{Name: name, Pass: pass})
+		})
+
+		return nil
+	})
+
+	// ---------------------------------------------------------------
+	// Migrate and start:
+	// ---------------------------------------------------------------
+
 	migratecmd.MustRegister(app, app.RootCmd, &migratecmd.Options{
 		TemplateLang: migratecmd.TemplateLangGo,
 		Automigrate:  automigrate,
 		Dir:          migrationsDir,
 	})
 
-	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
-		// serves static files from the provided public dir (if exists)
-		e.Router.GET("/*", apis.StaticDirectoryHandler(os.DirFS(publicDir), indexFallback))
-		return nil
-	})
-
 	if err := app.Start(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-// the default pb_public dir location is relative to the executable
-func defaultPublicDir() string {
-	if strings.HasPrefix(os.Args[0], os.TempDir()) {
-		// most likely ran with go run
-		return "./pb_public"
-	}
-	return filepath.Join(os.Args[0], "../pb_public")
 }
