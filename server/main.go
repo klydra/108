@@ -9,8 +9,9 @@ import (
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/plugins/jsvm"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
+
+	_ "main/migrations"
 )
 
 func main() {
@@ -58,14 +59,9 @@ func main() {
 	// Plugins and hooks:
 	// ---------------------------------------------------------------
 
-	// load js pb_migrations
-	jsvm.MustRegisterMigrations(app, &jsvm.MigrationsOptions{
-		Dir: migrationsDir,
-	})
-
 	// migrate command (with js templates)
 	migratecmd.MustRegister(app, app.RootCmd, &migratecmd.Options{
-		TemplateLang: migratecmd.TemplateLangJS,
+		TemplateLang: migratecmd.TemplateLangGo,
 		Automigrate:  automigrate,
 		Dir:          migrationsDir,
 	})
