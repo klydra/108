@@ -75,6 +75,8 @@ func main() {
 	// ---------------------------------------------------------------
 
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
+		// Attention: API safety checks intentionally removed to save on resources in enclosed system
+
 		e.Router.POST("/user/register", func(c echo.Context) error {
 			collection, err := app.Dao().FindCollectionByNameOrId("players")
 			if err != nil {
@@ -125,30 +127,31 @@ func main() {
 			if len(user.GetString("game")) != 0 {
 				// Check for ongoing game
 				game, err := app.Dao().FindRecordById("games", user.GetString("game"))
+				if err != nil {
+					return apis.NewApiError(500, "User registered for game that is absent.", err)
+				}
 
-				if err == nil {
-					// Retrieve ongoing game player data
-					var players []Player
-					err = json.Unmarshal([]byte(game.GetString("players")), &players)
-					if err != nil {
-						return apis.NewApiError(500, "Couldn't get ongoing players.", err)
-					}
+				// Retrieve ongoing game player data
+				var players []Player
+				err = json.Unmarshal([]byte(game.GetString("players")), &players)
+				if err != nil {
+					return apis.NewApiError(500, "Couldn't get ongoing players.", err)
+				}
 
-					// Remove player from ongoing game
-					for i := 0; i < len(players); i++ {
-						if players[i].Name == user.Get("name") {
-							updated, err := json.Marshal(append(players[:i], players[i+1:]...))
-							if err != nil {
-								return apis.NewApiError(500, "Couldn't generate ongoing update request.", err)
-							}
-
-							game.Set("players", updated)
-							err = app.Dao().SaveRecord(game)
-							if err != nil {
-								return apis.NewApiError(500, "Couldn't remove player from ongoing game.", err)
-							}
-							break
+				// Remove player from ongoing game
+				for i := 0; i < len(players); i++ {
+					if players[i].Name == user.Get("name") {
+						updated, err := json.Marshal(append(players[:i], players[i+1:]...))
+						if err != nil {
+							return apis.NewApiError(500, "Couldn't generate ongoing update request.", err)
 						}
+
+						game.Set("players", updated)
+						err = app.Dao().SaveRecord(game)
+						if err != nil {
+							return apis.NewApiError(500, "Couldn't remove player from ongoing game.", err)
+						}
+						break
 					}
 				}
 
@@ -187,6 +190,31 @@ func main() {
 			return c.NoContent(http.StatusOK)
 		})
 
+		e.Router.POST("/session/start", func(c echo.Context) error {
+			// Retrieve target user
+			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
+			if err != nil {
+				return apis.NewBadRequestError("Couldn't find user.", err)
+			}
+
+			if len(user.GetString("game")) == 0 {
+				return apis.NewBadRequestError("User not participating in game.", err)
+			}
+
+			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
+			if err != nil {
+				return apis.NewApiError(500, "User participating in absent game.", err)
+			}
+
+			game.Set("live", user.GetString("name"))
+			err = app.Dao().SaveRecord(game)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't start game.", err)
+			}
+
+			return c.NoContent(http.StatusOK)
+		})
+
 		e.Router.POST("/session/rules", func(c echo.Context) error {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
@@ -200,12 +228,6 @@ func main() {
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
 			if err != nil {
-				user.Set("game", "")
-				err = app.Dao().SaveRecord(user)
-				if err != nil {
-					return apis.NewApiError(500, "Couldn't remove user from dead game.", err)
-				}
-
 				return apis.NewBadRequestError("User not participating in game.", err)
 			}
 
@@ -234,30 +256,31 @@ func main() {
 			if len(user.GetString("game")) != 0 {
 				// Check for ongoing game
 				game, err := app.Dao().FindRecordById("games", user.GetString("game"))
+				if err != nil {
+					return apis.NewApiError(500, "User registered for game that is absent.", err)
+				}
 
-				if err == nil {
-					// Retrieve ongoing game player data
-					var players []Player
-					err = json.Unmarshal([]byte(game.GetString("players")), &players)
-					if err != nil {
-						return apis.NewApiError(500, "Couldn't get ongoing players.", err)
-					}
+				// Retrieve ongoing game player data
+				var players []Player
+				err = json.Unmarshal([]byte(game.GetString("players")), &players)
+				if err != nil {
+					return apis.NewApiError(500, "Couldn't get ongoing players.", err)
+				}
 
-					// Remove player from ongoing game
-					for i := 0; i < len(players); i++ {
-						if players[i].Name == user.Get("name") {
-							updated, err := json.Marshal(append(players[:i], players[i+1:]...))
-							if err != nil {
-								return apis.NewApiError(500, "Couldn't generate ongoing update request.", err)
-							}
-
-							game.Set("players", updated)
-							err = app.Dao().SaveRecord(game)
-							if err != nil {
-								return apis.NewApiError(500, "Couldn't remove player from ongoing game.", err)
-							}
-							break
+				// Remove player from ongoing game
+				for i := 0; i < len(players); i++ {
+					if players[i].Name == user.Get("name") {
+						updated, err := json.Marshal(append(players[:i], players[i+1:]...))
+						if err != nil {
+							return apis.NewApiError(500, "Couldn't generate ongoing update request.", err)
 						}
+
+						game.Set("players", updated)
+						err = app.Dao().SaveRecord(game)
+						if err != nil {
+							return apis.NewApiError(500, "Couldn't remove player from ongoing game.", err)
+						}
+						break
 					}
 				}
 
@@ -285,13 +308,7 @@ func main() {
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
 			if err != nil {
-				user.Set("game", "")
-				err = app.Dao().SaveRecord(user)
-				if err != nil {
-					return apis.NewApiError(500, "Couldn't remove user from dead game.", err)
-				}
-
-				return apis.NewBadRequestError("User not participating in game.", err)
+				return apis.NewBadRequestError("User participating in absent game.", err)
 			}
 
 			return c.JSON(http.StatusOK, Session{Code: game.Id})

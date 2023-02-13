@@ -10,6 +10,7 @@ const API_USER_REGISTER = "/user/register";
 const API_SESSION_CREATE = "/session/create";
 const API_SESSION_JOIN = "/session/join";
 const API_SESSION_LEAVE = "/session/leave";
+const API_SESSION_START = "/session/start";
 const API_SESSION_RULES = "/session/rules";
 const API_SESSION_ONGOING = "/session/ongoing";
 const API_GAME_DRAW = "/game/draw";
@@ -36,6 +37,10 @@ export async function sessionCreate() {
 
 export async function sessionJoin() {
   return _post(API_SESSION_JOIN, { ...credentials() });
+}
+
+export async function sessionStart() {
+  return _post(API_SESSION_START, { ...credentials() });
 }
 
 export async function sessionRules(rules: string) {
