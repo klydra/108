@@ -21,7 +21,7 @@ func init() {
 			"schema": [
 				{
 					"system": false,
-					"id": "gzqmhmwz",
+					"id": "9ty9j6ed",
 					"name": "name",
 					"type": "text",
 					"required": true,
@@ -34,31 +34,15 @@ func init() {
 				},
 				{
 					"system": false,
-					"id": "9ty9j6ed",
-					"name": "pass",
+					"id": "pzbow0h0",
+					"name": "game",
 					"type": "text",
-					"required": true,
-					"unique": false,
-					"options": {
-						"min": 26,
-						"max": 26,
-						"pattern": "^[A-Z0-9]+$"
-					}
-				},
-				{
-					"system": false,
-					"id": "7dubhft7",
-					"name": "table",
-					"type": "relation",
 					"required": false,
 					"unique": false,
 					"options": {
-						"collectionId": "0lu69o7sb781pvs",
-						"cascadeDelete": false,
-						"maxSelect": 1,
-						"displayFields": [
-							"id"
-						]
+						"min": 15,
+						"max": 15,
+						"pattern": "^[a-z0-9]+$"
 					}
 				},
 				{
@@ -66,7 +50,7 @@ func init() {
 					"id": "yoc3plly",
 					"name": "cards",
 					"type": "json",
-					"required": false,
+					"required": true,
 					"unique": false,
 					"options": {}
 				}

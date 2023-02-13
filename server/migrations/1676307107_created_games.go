@@ -45,10 +45,14 @@ func init() {
 					"system": false,
 					"id": "xv694u2s",
 					"name": "live",
-					"type": "bool",
+					"type": "text",
 					"required": false,
 					"unique": false,
-					"options": {}
+					"options": {
+						"min": 15,
+						"max": 15,
+						"pattern": "^[A-Z0-9]+$"
+					}
 				}
 			],
 			"listRule": null,
