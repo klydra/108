@@ -345,6 +345,10 @@ func main() {
 				return apis.NewApiError(500, "Couldn't get players.", err)
 			}
 
+			if len(players) < 2 {
+				return apis.NewBadRequestError("Not enough players.", err)
+			}
+
 			if !rules.Unlimited {
 				give := len(players) * rules.Count
 				var stack []string
@@ -471,7 +475,18 @@ func main() {
 				// Remove player from ongoing game
 				for i := 0; i < len(players); i++ {
 					if players[i].Name == user.Get("name") {
-						updated, err := json.Marshal(append(players[:i], players[i+1:]...))
+						players = append(players[:i], players[i+1:]...)
+
+						// If no players are left, purge game
+						if len(players) == 0 {
+							err = app.Dao().DeleteRecord(game)
+							if err != nil {
+								return apis.NewApiError(500, "Couldn't delete empty game.", err)
+							}
+							break
+						}
+
+						updated, err := json.Marshal(players)
 						if err != nil {
 							return apis.NewApiError(500, "Couldn't generate ongoing update request.", err)
 						}
