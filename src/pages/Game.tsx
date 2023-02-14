@@ -9,8 +9,8 @@ export default class Game extends Component<any, any> {
 
     this.state = {
       test: false,
-      cards: [4, 3, 2, 1]
-    }
+      cards: [11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+    };
   }
 
   render() {
@@ -27,35 +27,55 @@ export default class Game extends Component<any, any> {
         </div>
 
         {/* Own card row */}
-        <div className="fixed h-52 w-[60%] inset-x-[20%] bottom-[1%] flex gap-2 justify-center items-end">
+        <div className="fixed h-52 w-[60%] inset-x-[20%] bottom-[1%] flex gap-x-3 justify-center items-end">
           {this.state.cards.map((index: number) => {
-            console.log(index)
+            console.log(index);
 
-            return <div style={{ transform: "translate(" + index * 2 + "rem, 0)", zIndex: index }}>
-              <div className="hover:-translate-y-3 hover:scale-110 duration-100 ease-out -translate-x-20 aria-disabled:-translate-y-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0" aria-disabled={this.state.test} onClick={() => this.setState({ test: !this.state.test })}>
+            return (
+              <div
+                style={{
+                  zIndex: index,
+                  maxWidth: (1 / this.state.cards.length) * 30 + "rem",
+                }}
+                className="hover:-translate-y-3 hover:scale-110 duration-100 w-fit ease-out aria-disabled:-translate-y-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0"
+                aria-disabled={this.state.test}
+                onClick={() => this.setState({ test: !this.state.test })}
+              >
                 <CardFront card={card} />
               </div>
-            </div>
+            );
           })}
         </div>
 
         {/* Left card row */}
         <div className="fixed w-44 h-[80%] inset-y-[10%] left-[1%] rotate-180 flex flex-col justify-center items-end">
-          <div className="w-full duration-100 ease-out aria-disabled:-translate-x-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0 " aria-disabled={this.state.test} onClick={() => this.setState({ test: !this.state.test })}>
+          <div
+            className="w-full duration-100 ease-out aria-disabled:-translate-x-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0 "
+            aria-disabled={this.state.test}
+            onClick={() => this.setState({ test: !this.state.test })}
+          >
             <CardBack rotated />
           </div>
         </div>
 
         {/* Right card row */}
         <div className="fixed w-44 h-[80%] inset-y-[10%] right-[1%] flex flex-col justify-center items-end">
-          <div className="w-full duration-100 ease-out aria-disabled:-translate-x-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0" aria-disabled={this.state.test} onClick={() => this.setState({ test: !this.state.test })}>
-            <CardBack rotated/>
+          <div
+            className="w-full duration-100 ease-out aria-disabled:-translate-x-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0"
+            aria-disabled={this.state.test}
+            onClick={() => this.setState({ test: !this.state.test })}
+          >
+            <CardBack rotated />
           </div>
         </div>
 
         {/* Top card row */}
         <div className="fixed w-[80%] h-44 inset-x-[10%] top-[1%] gap-2 flex justify-center items-start">
-          <div className="h-full duration-100 ease-out aria-disabled:translate-y-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0" aria-disabled={this.state.test} onClick={() => this.setState({ test: !this.state.test })}>
+          <div
+            className="h-full duration-100 ease-out aria-disabled:translate-y-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0"
+            aria-disabled={this.state.test}
+            onClick={() => this.setState({ test: !this.state.test })}
+          >
             <CardBack />
           </div>
           <CardBack />
@@ -70,18 +90,36 @@ export default class Game extends Component<any, any> {
 
         {/* Draw stack */}
         <div className="fixed flex inset-y-1/2 left-[37.5%] right-[50%] inset-y-[42%] flex justify-center items-center">
-          <div className="h-full duration-700 ease-out aria-disabled:scale-[166%] aria-disabled:opacity-0 absolute" aria-disabled={this.state.test} onClick={() => this.setState({ test: !this.state.test })}>
+          <div
+            className="h-full duration-700 ease-out aria-disabled:scale-[166%] aria-disabled:opacity-0 absolute"
+            aria-disabled={this.state.test}
+            onClick={() => this.setState({ cards: this.state.cards.slice(1) })}
+          >
             <CardBack />
           </div>
           <CardBack />
         </div>
 
         {/* Play stack  */}
-      <div className="fixed flex inset-y-1/2 right-[37.5%] left-[50%] inset-y-[42%] flex justify-center items-center" onClick={() => this.setState({ cards: this.state.cards.length === 4 ? [5, 4, 3, 2, 1] : [4, 3, 2, 1] })}>
+        <div
+          className="fixed flex inset-y-1/2 right-[37.5%] left-[50%] inset-y-[42%] flex justify-center items-center"
+          onClick={() => this.setState({ cards: this.state.cards.slice(1) })}
+        >
           <div className="scale-75">
             <CardFront card={card} />
           </div>
-          <div className="scale-75 duration-700 ease-out aria-disabled:scale-125 aria-disabled:opacity-50 absolute " aria-disabled={this.state.test} onClick={() => this.setState({ cards: this.state.cards.length === 4 ? [5, 4, 3, 2, 1] : [4, 3, 2, 1] })}>
+          <div
+            className="scale-75 duration-700 ease-out aria-disabled:scale-125 aria-disabled:opacity-50 absolute "
+            aria-disabled={this.state.test}
+            onClick={() =>
+              this.setState({
+                cards:
+                  this.state.cards.length === 4
+                    ? [5, 4, 3, 2, 1]
+                    : [4, 3, 2, 1],
+              })
+            }
+          >
             <CardFront card={card} />
           </div>
         </div>
