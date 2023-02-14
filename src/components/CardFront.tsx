@@ -23,6 +23,8 @@ function Card(props: { card: CardType }) {
         return "blue";
       case CardColor.PURPLE:
         return "purple";
+      case CardColor.DARK:
+        return "dark";
     }
   }
 

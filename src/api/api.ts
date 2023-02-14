@@ -16,10 +16,12 @@ const API_SESSION_ONGOING = "/session/ongoing";
 const API_GAME_DRAW = "/game/draw";
 const API_GAME_PLAY = "/game/play";
 const API_GAME_WISH = "/game/wish";
+const API_GAME_HOLD = "/game/hold";
 const API_GAME_CALL = "/game/call";
 const API_GAME_APPEAL = "/game/appeal";
 const API_GAME_SWITCH = "/game/switch";
 const API_GAME_CHALLENGE = "/game/challenge";
+const API_GAME_TIMEOUT = "/game/timeout";
 
 function credentials() {
   return {
@@ -63,8 +65,12 @@ export async function gamePlay(card: string) {
   return _post(API_GAME_PLAY, { ...credentials(), card });
 }
 
-export async function gameWish(player: string) {
-  return _post(API_GAME_WISH, { ...credentials(), player });
+export async function gameHold() {
+  return _post(API_GAME_WISH, { ...credentials() });
+}
+
+export async function gameWish(card: string, color: string) {
+  return _post(API_GAME_HOLD, { ...credentials(), card, color });
 }
 
 export async function gameCall(player: string) {
@@ -81,4 +87,8 @@ export async function gameSwitch(player: string) {
 
 export async function gameChallenge(player: string) {
   return _post(API_GAME_CHALLENGE, { ...credentials(), player });
+}
+
+export async function gameTimeout(player: string) {
+  return _post(API_GAME_TIMEOUT, { ...credentials(), player });
 }
