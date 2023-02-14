@@ -1,5 +1,11 @@
 const API_HOST = "http://localhost:8090/api";
 
+async function _get(path: string, headers?: HeadersInit) {
+  return (
+    await fetch(API_HOST + path, { method: "GET", headers: headers })
+  ).json();
+}
+
 async function _post(path: string, headers?: HeadersInit) {
   return (
     await fetch(API_HOST + path, { method: "POST", headers: headers })
@@ -13,10 +19,11 @@ const API_SESSION_LEAVE = "/session/leave";
 const API_SESSION_START = "/session/start";
 const API_SESSION_RULES = "/session/rules";
 const API_SESSION_ONGOING = "/session/ongoing";
+const API_SESSION_HAND = "/session/hand";
 const API_GAME_DRAW = "/game/draw";
 const API_GAME_PLAY = "/game/play";
-const API_GAME_WISH = "/game/wish";
 const API_GAME_HOLD = "/game/hold";
+const API_GAME_WISH = "/game/wish";
 const API_GAME_CALL = "/game/call";
 const API_GAME_APPEAL = "/game/appeal";
 const API_GAME_SWITCH = "/game/switch";
@@ -57,6 +64,10 @@ export async function sessionOngoing() {
   return _post(API_SESSION_ONGOING, { ...credentials() });
 }
 
+export async function sessionHand() {
+  return _get(API_SESSION_HAND, { ...credentials() });
+}
+
 export async function gameDraw() {
   return _post(API_GAME_DRAW, { ...credentials() });
 }
@@ -73,8 +84,8 @@ export async function gameWish(card: string, color: string) {
   return _post(API_GAME_HOLD, { ...credentials(), card, color });
 }
 
-export async function gameCall(player: string) {
-  return _post(API_GAME_CALL, { ...credentials(), player });
+export async function gameCall() {
+  return _post(API_GAME_CALL, { ...credentials() });
 }
 
 export async function gameAppeal(player: string) {
