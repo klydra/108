@@ -226,14 +226,14 @@ func main() {
 			record.Set("rules", rules)
 			record.Set("stack", "[{}]")
 
-			// Adding player to game
-			user.Set("game", record.Id)
-
 			// Updating state
 			err = app.Dao().SaveRecord(record)
 			if err != nil {
 				return apis.NewApiError(500, "Couldn't create game record.", err)
 			}
+
+			// Adding player to game
+			user.Set("game", record.Id)
 
 			err = app.Dao().SaveRecord(user)
 			if err != nil {
