@@ -131,7 +131,7 @@ func main() {
 
 			record := models.NewRecord(collection)
 			record.Set("name", ulid.Make().String())
-			record.Set("hand", "[]")
+			record.Set("hand", "[{}]")
 
 			err = app.Dao().SaveRecord(record)
 			if err != nil {
@@ -225,7 +225,7 @@ func main() {
 			record.Set("code", ulid.Make().String())
 			record.Set("players", players)
 			record.Set("rules", rules)
-			record.Set("stack", "[]")
+			record.Set("stack", "[{}]")
 
 			// Adding player to game
 			user.Set("game", record.Id)
@@ -1366,7 +1366,7 @@ func main() {
 			}
 
 			stack = append(cards, stack...)
-			player.Set("hand", "[]")
+			player.Set("hand", "[{}]")
 
 			// Shifting turn if it was the player's turn
 			if game.GetString("live") == player.GetString("name") {
@@ -1390,7 +1390,7 @@ func main() {
 
 			game.Set("players", playersUpdate)
 			game.Set("stack", stackUpdate)
-			player.Set("hand", "[]")
+			player.Set("hand", "[{}]")
 
 			err = app.Dao().SaveRecord(game)
 			if err != nil {
