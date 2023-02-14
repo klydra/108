@@ -21,19 +21,6 @@ func init() {
 			"schema": [
 				{
 					"system": false,
-					"id": "fkx1zw1s",
-					"name": "code",
-					"type": "text",
-					"required": true,
-					"unique": false,
-					"options": {
-						"min": 26,
-						"max": 26,
-						"pattern": "^[A-Z0-9]+$"
-					}
-				},
-				{
-					"system": false,
 					"id": "resdif92",
 					"name": "players",
 					"type": "json",

@@ -56,7 +56,7 @@ func init() {
 				}
 			],
 			"listRule": null,
-			"viewRule": null,
+			"viewRule": "",
 			"createRule": null,
 			"updateRule": null,
 			"deleteRule": null,
