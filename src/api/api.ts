@@ -1,4 +1,4 @@
-const API_HOST = "http://localhost:8090/api";
+export const API_HOST = "http://localhost:8090/api";
 
 async function _get(path: string, headers?: HeadersInit) {
   return (
@@ -22,6 +22,7 @@ const API_SESSION_ONGOING = "/session/ongoing";
 const API_SESSION_HAND = "/session/hand";
 const API_GAME_DRAW = "/game/draw";
 const API_GAME_PLAY = "/game/play";
+const API_GAME_THROW = "/game/throw";
 const API_GAME_HOLD = "/game/hold";
 const API_GAME_WISH = "/game/wish";
 const API_GAME_CALL = "/game/call";
@@ -73,6 +74,10 @@ export async function gameDraw() {
 
 export async function gamePlay(card: string) {
   return _post(API_GAME_PLAY, { ...credentials(), card });
+}
+
+export async function gameThrow(card: string) {
+  return _post(API_GAME_THROW, { ...credentials(), card });
 }
 
 export async function gameHold() {
