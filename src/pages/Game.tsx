@@ -9,7 +9,7 @@ export default class Game extends Component<any, any> {
 
     this.state = {
       test: false,
-      cards: [1, 1, 1, 1]
+      cards: [4, 3, 2, 1]
     }
   }
 
@@ -28,9 +28,13 @@ export default class Game extends Component<any, any> {
 
         {/* Own card row */}
         <div className="fixed h-52 w-[60%] inset-x-[20%] bottom-[1%] flex gap-2 justify-center items-end">
-          {this.state.cards.map(() => {
-            return <div className="hover:-translate-y-3 hover:scale-110 duration-100 ease-out aria-disabled:-translate-y-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0 " aria-disabled={this.state.test} onClick={() => this.setState({ test: !this.state.test })}>
-              <CardFront card={card} />
+          {this.state.cards.map((index: number) => {
+            console.log(index)
+
+            return <div style={{ transform: "translate(" + index * 2 + "rem, 0)", zIndex: index }}>
+              <div className="hover:-translate-y-3 hover:scale-110 duration-100 ease-out -translate-x-20 aria-disabled:-translate-y-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0" aria-disabled={this.state.test} onClick={() => this.setState({ test: !this.state.test })}>
+                <CardFront card={card} />
+              </div>
             </div>
           })}
         </div>
@@ -73,11 +77,11 @@ export default class Game extends Component<any, any> {
         </div>
 
         {/* Play stack  */}
-        <div className="fixed flex inset-y-1/2 right-[37.5%] left-[50%] inset-y-[42%] flex justify-center items-center" onClick={() => this.setState({ cards: this.state.cards.length === 4 ? [...this.state.cards, 1] : [1, 1, 1, 1] })}>
+      <div className="fixed flex inset-y-1/2 right-[37.5%] left-[50%] inset-y-[42%] flex justify-center items-center" onClick={() => this.setState({ cards: this.state.cards.length === 4 ? [5, 4, 3, 2, 1] : [4, 3, 2, 1] })}>
           <div className="scale-75">
             <CardFront card={card} />
           </div>
-          <div className="scale-75 duration-700 ease-out aria-disabled:scale-125 aria-disabled:opacity-50 absolute " aria-disabled={this.state.test} onClick={() => this.setState({ cards: this.state.cards.length === 4 ? [...this.state.cards, 1] : [1, 1, 1, 1] })}>
+          <div className="scale-75 duration-700 ease-out aria-disabled:scale-125 aria-disabled:opacity-50 absolute " aria-disabled={this.state.test} onClick={() => this.setState({ cards: this.state.cards.length === 4 ? [5, 4, 3, 2, 1] : [4, 3, 2, 1] })}>
             <CardFront card={card} />
           </div>
         </div>
