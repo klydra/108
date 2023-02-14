@@ -27,7 +27,6 @@ const API_GAME_WISH = "/game/wish";
 const API_GAME_CALL = "/game/call";
 const API_GAME_APPEAL = "/game/appeal";
 const API_GAME_SWITCH = "/game/switch";
-const API_GAME_CHALLENGE = "/game/challenge";
 const API_GAME_TIMEOUT = "/game/timeout";
 
 function credentials() {
@@ -94,10 +93,6 @@ export async function gameAppeal(player: string) {
 
 export async function gameSwitch(player: string) {
   return _post(API_GAME_SWITCH, { ...credentials(), player });
-}
-
-export async function gameChallenge(player: string) {
-  return _post(API_GAME_CHALLENGE, { ...credentials(), player });
 }
 
 export async function gameTimeout(player: string) {
