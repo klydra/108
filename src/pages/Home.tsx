@@ -72,13 +72,21 @@ export default class Home extends Component<HomeProps, HomeState> {
         <div className="h-[2rem]">
 
         </div>
-        <div className="h-[4rem] flex justify-start items-center pl-[9rem]">
+        <div className="h-[4rem] flex justify-start items-center pl-[12rem]">
           <p className="text-card-accent  text-[4rem]">
             rules
           </p>
         </div>
-        <div className="grid grid-cols-2 py-[2rem] px-[2rem]">
+        <div className="grid grid-cols-2 pt-[5rem] pb-[8rem] px-[2rem]">
           <div className="flex flex-col items-center gap-y-24">
+            <div className="w-[70%] gap-x-[8%] flex justify-evenly items-center">
+              <div className="flex min-w-[10rem] justify-evenly items-center">
+                <div className="h-52">
+                  <CardBack />
+                </div>
+              </div>
+              <this.Rule title="draw" text="If a player can´t play a card he needs to draw a card." />
+            </div>
             <div className="w-[70%] gap-x-[8%] flex justify-evenly items-center">
               <div className="flex min-w-[10rem] justify-evenly items-center">
                 <div className="z-10">
@@ -95,14 +103,6 @@ export default class Home extends Component<HomeProps, HomeState> {
                 </div>
               </div>
               <this.Rule title="match" text="When it is a player's turn, he can play a card if it has the same color, the same value or if it is a wish-card or plus-4-card." />
-            </div>
-            <div className="w-[70%] gap-x-[8%] flex justify-evenly items-center">
-              <div className="flex min-w-[10rem] justify-evenly items-center">
-                <div className="h-52">
-                  <CardBack />
-                </div>
-              </div>
-              <this.Rule title="draw" text="If a player can´t play a card he needs to draw a card." />
             </div>
             <div className="w-[70%] gap-x-[8%] flex justify-evenly items-center">
               <div className="flex min-w-[10rem] justify-evenly items-center">
@@ -168,6 +168,86 @@ export default class Home extends Component<HomeProps, HomeState> {
                 }} />
               </div>
               <this.Rule title="winner" text={"The first player with zero cards left wins. \"Winner Winner Chicken Dinner\" "} />
+            </div>
+          </div>
+        </div>
+        <div className="h-[4rem] flex justify-start items-center pl-[12rem]">
+          <p className="text-card-accent  text-[4rem]">
+            custom rules
+          </p>
+        </div>
+        <div className="grid grid-cols-2 py-[5rem] px-[2rem]">
+          <div className="flex flex-col items-center gap-y-24">
+            <div className="w-[70%] gap-x-[8%] flex justify-evenly items-center">
+              <div className="flex min-w-[10rem] justify-evenly items-center">
+                <div className="h-52">
+                  <CardBack />
+                </div>
+              </div>
+              <this.Rule title="random cards" text="order cards …..gsfdagfgsafdgasfgdfasgfdgasfg" />
+            </div>
+            <div className="w-[70%] gap-x-[8%] flex justify-evenly items-center">
+              <div className="flex min-w-[10rem] justify-evenly items-center">
+                <CardFront card={{
+                  face: CardFace.NUMBER_0,
+                  color: this.state.theme
+                }} />
+              </div>
+              <this.Rule title="short match" text="the game ends when the first player plays all his cards" />
+            </div>
+            <div className="w-[70%] gap-x-[8%] flex justify-evenly items-center">
+              <div className="flex min-w-[10rem] justify-evenly items-center">
+                <CardFront card={{
+                  face: CardFace.WISH_PLUS_4,
+                  color: this.state.theme
+                }} />
+              </div>
+              <this.Rule title="to good to go" text="if you draw a matching card you can play it or hold it" />
+            </div>
+            <div className="w-[70%] gap-x-[8%] flex justify-evenly items-center">
+              <div className="flex min-w-[10rem] justify-evenly items-center">
+                <div className="h-52">
+                  <CardBack />
+                </div>
+              </div>
+              <this.Rule title="million cards" text="you can draw as long cards as you didn´t got a matching one"/>
+            </div>
+          </div>
+          <div className="flex flex-col items-center gap-y-24">
+            <div className="w-[70%] gap-x-[8%] flex justify-evenly items-center">
+              <div className="flex min-w-[10rem] justify-evenly items-center">
+                <CardFront card={{
+                  face: CardFace.NUMBER_0,
+                  color: this.state.theme
+                }} />
+              </div>
+              <this.Rule title="magic 0" text="Draw-2-cards and draw-4-cards are stackable, that the next player needs to draw 2, 3, 4, … times as much cards." />
+            </div>
+            <div className="w-[70%] gap-x-[8%] flex justify-evenly items-center">
+              <div className="flex min-w-[10rem] justify-evenly items-center">
+                <CardFront card={{
+                  face: CardFace.NUMBER_7,
+                  color: this.state.theme
+                }} />
+              </div>
+              <this.Rule title="magic 7" text="If a 7 is played, the player can choose one opponent to switch cards with." />
+            </div>
+            <div className="w-[70%] gap-x-[8%] flex justify-evenly items-center">
+              <div className="flex min-w-[10rem] justify-evenly items-center">
+                <div className="z-10">
+                  <CardFront card={{
+                    face: CardFace.NUMBER_6,
+                    color: this.state.theme
+                  }} />
+                </div>
+                <div className="-ml-[5rem]">
+                  <CardFront card={{
+                    face: CardFace.NUMBER_6,
+                    color: this.state.theme
+                  }} />
+                </div>
+              </div>
+              <this.Rule title="fast, faster, next one" text="If a card is played, and a player has the identical card the player can play the identical card and from him the game continues." />
             </div>
           </div>
         </div>
