@@ -8,7 +8,7 @@ const root = ReactDOM.createRoot(document.getElementById("root")!);
 root.render(
   <React.StrictMode>
     <div>
-      <Game />
+      <Game code="pxayz858s6qa183" />
     </div>
   </React.StrictMode>
 );
