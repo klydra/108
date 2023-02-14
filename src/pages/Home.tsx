@@ -282,13 +282,13 @@ export default class Home extends Component<HomeProps, HomeState> {
               <div className="flex min-w-[10rem] justify-evenly items-center">
                 <CardFront
                   card={{
-                    face: CardFace.NUMBER_0,
+                    face: CardFace.PLUS_2,
                     color: this.state.theme,
                   }}
                 />
               </div>
               <this.Rule
-                title="magic 0"
+                title="stacks"
                 text="Draw-2-cards and draw-4-cards are stackable, that the next player needs to draw 2, 3, 4, … times as much cards."
               />
             </div>
