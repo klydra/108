@@ -73,7 +73,7 @@ func init() {
 					"options": {}
 				}
 			],
-			"listRule": null,
+			"listRule": "",
 			"viewRule": null,
 			"createRule": null,
 			"updateRule": null,

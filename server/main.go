@@ -220,15 +220,25 @@ func main() {
 				return apis.NewApiError(500, "Couldn't generate default rules.", err)
 			}
 
+			// Create game record
 			record := models.NewRecord(collection)
 			record.Set("code", ulid.Make().String())
 			record.Set("players", players)
 			record.Set("rules", rules)
 			record.Set("stack", "[]")
 
+			// Adding player to game
+			user.Set("game", record.Id)
+
+			// Updating state
 			err = app.Dao().SaveRecord(record)
 			if err != nil {
 				return apis.NewApiError(500, "Couldn't create game record.", err)
+			}
+
+			err = app.Dao().SaveRecord(user)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't add player to game.", err)
 			}
 
 			return c.JSON(http.StatusOK, Session{Code: record.GetString("code")})
