@@ -458,7 +458,7 @@ export default class Home extends Component<HomeProps, HomeState> {
             <b className="select-none text-card-accent text-[2rem] font-default">
               Join in
             </b>
-            <div className="min-w-full px-8 h-1/2 flex justify-center items-center">
+            <div className="min-w-full px-12 h-1/2 flex justify-center items-center">
               <Input
                 className="rounded-2xl w-full"
                 size="lg"
