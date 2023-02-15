@@ -235,6 +235,9 @@ export default class Game extends Component<GameProps, GameState> {
       (item) => item.name !== this.state.player?.name
     );
 
+    const avatar = createAvatar(loreleiNeutral, {
+      seed: this.state.player?.name,
+    });
     const avatars = enemies?.map((enemy) =>
       createAvatar(loreleiNeutral, {
         seed: enemy.name,
@@ -273,6 +276,25 @@ export default class Game extends Component<GameProps, GameState> {
                 </div>
               );
             })}
+          {avatars ? (
+            <div className="h-24 w-24 ml-8">
+              <div
+                className="h-24 w-24 rounded-xl overflow-hidden absolute z-10"
+                dangerouslySetInnerHTML={{
+                  __html: avatar.toString(),
+                }}
+              ></div>
+              <div
+                style={{
+                  display:
+                    this.state.game?.live === this.state.player?.name
+                      ? ""
+                      : "none",
+                }}
+                className="m-2 h-20 w-20 rounded-xl bg-contrast duration-300 absolute animate-ping"
+              ></div>
+            </div>
+          ) : null}
         </div>
 
         {/* Left card row */}
