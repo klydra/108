@@ -269,7 +269,7 @@ func main() {
 				return apis.NewBadRequestError("Couldn't find user.", err)
 			}
 
-			if len(user.GetString("game")) != 0 {
+			if len(user.GetString("game")) != 0 && user.GetString("game") != c.Request().Header.Get("game") {
 				// Check for ongoing game
 				game, err := app.Dao().FindRecordById("games", user.GetString("game"))
 				if err != nil {
@@ -314,7 +314,7 @@ func main() {
 				return apis.NewBadRequestError("Couldn't find game.", err)
 			}
 
-			if len(game.GetString("live")) > 0 {
+			if len(game.GetString("live")) > 0 && c.Request().Header.Get("game") != user.GetString("game") {
 				return apis.NewBadRequestError("Game has already started.", err)
 			}
 

@@ -35,3 +35,66 @@ export type CardType = {
   color: CardColor;
   face: CardFace;
 };
+
+function codeToFace(card: string) {
+  switch (card.charAt(0)) {
+    default:
+    case "0":
+      return CardFace.NUMBER_0;
+    case "1":
+      return CardFace.NUMBER_1;
+    case "2":
+      return CardFace.NUMBER_2;
+    case "3":
+      return CardFace.NUMBER_3;
+    case "4":
+      return CardFace.NUMBER_4;
+    case "5":
+      return CardFace.NUMBER_5;
+    case "6":
+      return CardFace.NUMBER_6;
+    case "7":
+      return CardFace.NUMBER_7;
+    case "8":
+      return CardFace.NUMBER_8;
+    case "9":
+      return CardFace.NUMBER_9;
+    case "b":
+      return CardFace.BLOCK;
+    case "d":
+      return CardFace.DIRECTION_CHANGE;
+    case "w":
+      return CardFace.WISH;
+    case "p":
+      return CardFace.PLUS_2;
+    case "j":
+      return CardFace.WISH_PLUS_4;
+  }
+}
+
+function codeToColor(card: string) {
+  switch (card.charAt(1)) {
+    default:
+    case "d":
+      return CardColor.DARK;
+    case "y":
+      return CardColor.YELLOW;
+    case "g":
+      return CardColor.GREEN;
+    case "b":
+      return CardColor.BLUE;
+    case "p":
+      return CardColor.PURPLE;
+  }
+}
+
+export function codeToType(card: string) {
+  return {
+    face: codeToFace(card),
+    color: codeToColor(card),
+  } as CardType;
+}
+
+export function typeToCode(card: CardType) {
+  return card.face + card.color;
+}
