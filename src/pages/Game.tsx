@@ -5,13 +5,14 @@ import CardBack from "../components/CardBack";
 import PocketBase from "pocketbase";
 import {
   API_HOST,
-  sessionJoin,
+  API_NOTIFICATION_TIMEOUT,
+  ensureRegistered,
+  joinGame,
   sessionOngoing,
-  userRegister,
-} from "../api/api";
+} from "../api/API";
 import { NavigateFunction } from "react-router";
 import { showNotification } from "@mantine/notifications";
-import { AccountCircle, PlayArrow, Wifi } from "@mui/icons-material";
+import { PlayArrow, Wifi } from "@mui/icons-material";
 
 interface GameProps {
   game: string;
@@ -38,77 +39,34 @@ export default class Game extends Component<GameProps, GameState> {
   }
 
   async componentDidMount() {
-    if (!localStorage.getItem("token")) {
-      const user = await userRegister();
+    console.log("mount");
 
-      if (user["code"] !== 200) {
-        showNotification({
-          title: "Error",
-          message: user["message"],
-          color: "red",
-          icon: <AccountCircle />,
-        });
-        return;
-      }
-
-      showNotification({
-        title: "Success",
-        message: "Created user.",
-        color: "green",
-        icon: <AccountCircle />,
-      });
-
-      localStorage.setItem("token", user["token"]);
-    }
+    if (!(await ensureRegistered())) return;
 
     const ongoing = await sessionOngoing();
     switch (ongoing["code"]) {
       case 200:
         if (ongoing["code"] !== this.props.game) {
           showNotification({
-            title: "Error",
-            message:
-              "Currently participating in other game. Joining new game...",
+            autoClose: API_NOTIFICATION_TIMEOUT,
+            message: "Participating in other game. Leaving...",
             color: "yellow",
             icon: <PlayArrow />,
           });
 
-          const join = await sessionJoin(this.props.game);
-          if (join["code"] !== 200) {
-            showNotification({
-              title: "Error",
-              message: join["message"],
-              color: "red",
-              icon: <PlayArrow />,
-            });
-            return;
-          }
+          const game = await joinGame(this.props.game);
+          if (game !== this.props.game) return;
         }
         break;
 
       case 204:
-        showNotification({
-          title: "Error",
-          message: "Joining game...",
-          color: "yellow",
-          icon: <PlayArrow />,
-        });
-
-        const join = await sessionJoin(this.props.game);
-        if (join["code"] !== 200) {
-          showNotification({
-            title: "Error",
-            message: join["message"],
-            color: "red",
-            icon: <PlayArrow />,
-          });
-          return;
-        }
+        const game = await joinGame(this.props.game);
+        if (game !== this.props.game) return;
         break;
 
       default:
         showNotification({
-          title: "Error",
+          autoClose: API_NOTIFICATION_TIMEOUT,
           message: ongoing["message"],
           color: "red",
           icon: <PlayArrow />,
@@ -140,7 +98,7 @@ export default class Game extends Component<GameProps, GameState> {
     this.setState({ player, game });
 
     showNotification({
-      title: "Success",
+      autoClose: API_NOTIFICATION_TIMEOUT,
       message: "Connected to game.",
       color: "green",
       icon: <Wifi />,

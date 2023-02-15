@@ -1,11 +1,22 @@
+import { showNotification } from "@mantine/notifications";
+import { AccountCircle, PlayArrow } from "@mui/icons-material";
+import React from "react";
+
 export const API_HOST = "https://api.108.cards";
+export const API_NOTIFICATION_TIMEOUT = 8000;
 
 async function _get(path: string, headers?: HeadersInit) {
   const request = await fetch(API_HOST + path, {
     method: "GET",
     headers: headers,
   });
-  return { ...(await request.json()), code: request.status };
+
+  if (parseInt(request.headers.get("content-length") ?? "0") > 0)
+    return {
+      ...(await request.json()),
+      code: request.status,
+    };
+  else return { code: request.status };
 }
 
 async function _post(path: string, headers?: HeadersInit) {
@@ -13,7 +24,13 @@ async function _post(path: string, headers?: HeadersInit) {
     method: "POST",
     headers: headers,
   });
-  return { ...(await request.json()), code: request.status };
+
+  if (parseInt(request.headers.get("content-length") ?? "0") > 0)
+    return {
+      ...(await request.json()),
+      code: request.status,
+    };
+  else return { code: request.status };
 }
 
 const API_USER_REGISTER = "/user/register";
@@ -106,4 +123,75 @@ export async function gameSwitch(player: string) {
 
 export async function gameTimeout(player: string) {
   return _post(API_GAME_TIMEOUT, { ...credentials(), player });
+}
+
+export async function ensureRegistered() {
+  if (!localStorage.getItem("token")) {
+    const user = await userRegister();
+
+    if (user["code"] !== 200) {
+      showNotification({
+        autoClose: API_NOTIFICATION_TIMEOUT,
+        message: user["message"],
+        color: "red",
+        icon: <AccountCircle />,
+      });
+      return;
+    }
+
+    showNotification({
+      autoClose: API_NOTIFICATION_TIMEOUT,
+      message: "Created user.",
+      color: "green",
+      icon: <AccountCircle />,
+    });
+
+    localStorage.setItem("token", user["token"]);
+  }
+
+  return localStorage.getItem("token");
+}
+
+export async function createGame() {
+  const create = await sessionCreate();
+  if (create["code"] !== 200) {
+    showNotification({
+      autoClose: API_NOTIFICATION_TIMEOUT,
+      message: create["message"],
+      color: "red",
+      icon: <PlayArrow />,
+    });
+    return;
+  }
+
+  showNotification({
+    autoClose: API_NOTIFICATION_TIMEOUT,
+    message: "Created game.",
+    color: "green",
+    icon: <PlayArrow />,
+  });
+
+  return create["game"];
+}
+
+export async function joinGame(game: string) {
+  const join = await sessionJoin(game);
+  if (join["code"] !== 200) {
+    showNotification({
+      autoClose: API_NOTIFICATION_TIMEOUT,
+      message: join["message"],
+      color: "red",
+      icon: <PlayArrow />,
+    });
+    return;
+  }
+
+  showNotification({
+    autoClose: API_NOTIFICATION_TIMEOUT,
+    message: "Joining game...",
+    color: "green",
+    icon: <PlayArrow />,
+  });
+
+  return join["game"];
 }
