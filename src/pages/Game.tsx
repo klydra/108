@@ -157,15 +157,27 @@ export default class Game extends Component<GameProps, GameState> {
           disappear: !this.state.animation.disappear,
         },
       });
+
+    if (
+      prevState.game &&
+      this.state.game &&
+      this.state.player &&
+      prevState.game.live != this.state.game.live &&
+      this.state.game.live === this.state.player.name
+    )
+      showNotification({
+        autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
+        message: "It's your turn!",
+        color: "violet",
+        icon: <PlayArrow />,
+      });
   }
 
   render() {
-    console.log(this.state);
-
     return (
       <>
         {/* Table */}
-        <div className="absolute flex justify-center items-center bg-background h-[100vh] w-[100vw] px-[5%] py-[5%]">
+        <div className="absolute flex justify-center items-center bg-background h-[100vh] w-[100vw] p-[5%]">
           <div className="bg-table-background h-full w-full rounded-2xl drop-shadow-[0_5px_5px_rgba(255,255,255,0.25)] shadow-card-yellow"></div>
         </div>
 
