@@ -1,15 +1,19 @@
 export const API_HOST = "https://api.108.cards";
 
 async function _get(path: string, headers?: HeadersInit) {
-  return (
-    await fetch(API_HOST + path, { method: "GET", headers: headers })
-  ).json();
+  const request = await fetch(API_HOST + path, {
+    method: "GET",
+    headers: headers,
+  });
+  return { ...(await request.json()), code: request.status };
 }
 
 async function _post(path: string, headers?: HeadersInit) {
-  return (
-    await fetch(API_HOST + path, { method: "POST", headers: headers })
-  ).json();
+  const request = await fetch(API_HOST + path, {
+    method: "POST",
+    headers: headers,
+  });
+  return { ...(await request.json()), code: request.status };
 }
 
 const API_USER_REGISTER = "/user/register";
@@ -44,8 +48,8 @@ export async function sessionCreate() {
   return _post(API_SESSION_CREATE, { ...credentials() });
 }
 
-export async function sessionJoin(code: string) {
-  return _post(API_SESSION_JOIN, { ...credentials(), code });
+export async function sessionJoin(game: string) {
+  return _post(API_SESSION_JOIN, { ...credentials(), game });
 }
 
 export async function sessionStart() {

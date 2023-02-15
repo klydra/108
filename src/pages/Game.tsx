@@ -3,13 +3,18 @@ import CardFront from "../components/CardFront";
 import { CardColor, CardFace, CardType } from "../models/Card";
 import CardBack from "../components/CardBack";
 import PocketBase from "pocketbase";
-import { API_HOST, userRegister } from "../api/api";
+import {
+  API_HOST,
+  sessionJoin,
+  sessionOngoing,
+  userRegister,
+} from "../api/api";
 import { NavigateFunction } from "react-router";
 import { showNotification } from "@mantine/notifications";
-import { AccountCircle, Wifi } from "@mui/icons-material";
+import { AccountCircle, PlayArrow, Wifi } from "@mui/icons-material";
 
 interface GameProps {
-  code: string;
+  game: string;
   navigate: NavigateFunction;
 }
 
@@ -36,7 +41,7 @@ export default class Game extends Component<GameProps, GameState> {
     if (!localStorage.getItem("token")) {
       const user = await userRegister();
 
-      if (user["code"]) {
+      if (user["code"] !== 200) {
         showNotification({
           title: "Error",
           message: user["message"],
@@ -56,13 +61,67 @@ export default class Game extends Component<GameProps, GameState> {
       localStorage.setItem("token", user["token"]);
     }
 
+    const ongoing = await sessionOngoing();
+    switch (ongoing["code"]) {
+      case 200:
+        if (ongoing["code"] !== this.props.game) {
+          showNotification({
+            title: "Error",
+            message:
+              "Currently participating in other game. Joining new game...",
+            color: "yellow",
+            icon: <PlayArrow />,
+          });
+
+          const join = await sessionJoin(this.props.game);
+          if (join["code"] !== 200) {
+            showNotification({
+              title: "Error",
+              message: join["message"],
+              color: "red",
+              icon: <PlayArrow />,
+            });
+            return;
+          }
+        }
+        break;
+
+      case 204:
+        showNotification({
+          title: "Error",
+          message: "Joining game...",
+          color: "yellow",
+          icon: <PlayArrow />,
+        });
+
+        const join = await sessionJoin(this.props.game);
+        if (join["code"] !== 200) {
+          showNotification({
+            title: "Error",
+            message: join["message"],
+            color: "red",
+            icon: <PlayArrow />,
+          });
+          return;
+        }
+        break;
+
+      default:
+        showNotification({
+          title: "Error",
+          message: ongoing["message"],
+          color: "red",
+          icon: <PlayArrow />,
+        });
+    }
+
     const player = (await this.pocketbase
       .collection("players")
       .getOne(localStorage.getItem("token")!)) as Object as PlayerType;
 
     const game = (await this.pocketbase
       .collection("games")
-      .getOne(this.props.code)) as Object as GameType;
+      .getOne(this.props.game)) as Object as GameType;
 
     if (!this.state.player)
       await this.pocketbase
@@ -74,7 +133,7 @@ export default class Game extends Component<GameProps, GameState> {
     if (!this.state.game)
       await this.pocketbase
         .collection("games")
-        .subscribe(this.props.code, (change) =>
+        .subscribe(this.props.game, (change) =>
           this.setState({ game: change.record as Object as GameType })
         );
 
@@ -93,7 +152,7 @@ export default class Game extends Component<GameProps, GameState> {
       await this.pocketbase
         .collection("players")
         .unsubscribe(localStorage.getItem("token")!);
-    await this.pocketbase.collection("games").unsubscribe(this.props.code);
+    await this.pocketbase.collection("games").unsubscribe(this.props.game);
   }
 
   render() {

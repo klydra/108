@@ -24,7 +24,7 @@ type Registration struct {
 }
 
 type Session struct {
-	Code string `json:"code" xml:"code"`
+	Game string `json:"game" xml:"game"`
 }
 
 type Hand struct {
@@ -240,7 +240,7 @@ func main() {
 				return apis.NewApiError(500, "Couldn't add player to game.", err)
 			}
 
-			return c.JSON(http.StatusOK, Session{Code: record.Id})
+			return c.JSON(http.StatusOK, Session{Game: record.Id})
 		})
 
 		e.Router.POST("/session/join", func(c echo.Context) error {
@@ -290,7 +290,7 @@ func main() {
 			}
 
 			// Retrieve target game to join
-			game, err := app.Dao().FindRecordById("games", c.Request().Header.Get("code"))
+			game, err := app.Dao().FindRecordById("games", c.Request().Header.Get("game"))
 			if err != nil {
 				return apis.NewBadRequestError("Couldn't find game.", err)
 			}
@@ -518,7 +518,7 @@ func main() {
 			}
 
 			if len(user.GetString("game")) == 0 {
-				return apis.NewBadRequestError("User not participating in game.", err)
+				return c.NoContent(http.StatusNoContent)
 			}
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
@@ -526,7 +526,7 @@ func main() {
 				return apis.NewBadRequestError("User participating in absent game.", err)
 			}
 
-			return c.JSON(http.StatusOK, Session{Code: game.Id})
+			return c.JSON(http.StatusOK, Session{Game: game.Id})
 		})
 
 		e.Router.POST("/session/hand", func(c echo.Context) error {

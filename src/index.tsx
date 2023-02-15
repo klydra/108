@@ -21,31 +21,29 @@ function HomeRoute() {
 }
 
 function GameRoute() {
-  const { code } = useParams();
+  const { game } = useParams();
   const navigate = useNavigate();
-  if (code) return <Game code={code} navigate={navigate} />;
+  if (game) return <Game game={game} navigate={navigate} />;
   return null;
 }
 
 root.render(
-  <React.StrictMode>
-    <MantineProvider
-      withCSSVariables
-      withGlobalStyles
-      withNormalizeCSS
-      theme={{
-        colorScheme: "dark",
-        fontFamily: "Inter",
-      }}
-    >
-      <NotificationsProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route index path="/" element={<HomeRoute />} />
-            <Route path=":code" element={<GameRoute />} />
-          </Routes>
-        </BrowserRouter>
-      </NotificationsProvider>
-    </MantineProvider>
-  </React.StrictMode>
+  <MantineProvider
+    withCSSVariables
+    withGlobalStyles
+    withNormalizeCSS
+    theme={{
+      colorScheme: "dark",
+      fontFamily: "Inter",
+    }}
+  >
+    <NotificationsProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route index path="/" element={<HomeRoute />} />
+          <Route path=":game" element={<GameRoute />} />
+        </Routes>
+      </BrowserRouter>
+    </NotificationsProvider>
+  </MantineProvider>
 );

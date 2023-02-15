@@ -20,7 +20,7 @@ interface HomeProps {
 
 interface HomeState {
   modal: boolean;
-  code: string;
+  game: string;
 }
 
 export default class Home extends Component<HomeProps, HomeState> {
@@ -31,7 +31,7 @@ export default class Home extends Component<HomeProps, HomeState> {
 
     this.state = {
       modal: false,
-      code: "",
+      game: "",
     };
 
     this.theme = Math.floor(Math.random() * Object.keys(CardColor).length - 1);
@@ -104,8 +104,8 @@ export default class Home extends Component<HomeProps, HomeState> {
                   setOpened={(opened: boolean) =>
                     this.setState({ modal: opened })
                   }
-                  code={this.state.code}
-                  setCode={(code: string) => this.setState({ code })}
+                  game={this.state.game}
+                  setGame={(game: string) => this.setState({ game })}
                   theme={this.themeName()}
                   navigate={this.props.navigate}
                 />
@@ -526,8 +526,8 @@ export default class Home extends Component<HomeProps, HomeState> {
   Play(props: {
     opened: boolean;
     setOpened: Function;
-    code: string;
-    setCode: Function;
+    game: string;
+    setGame: Function;
     theme: string;
     navigate: NavigateFunction;
   }) {
@@ -558,7 +558,7 @@ export default class Home extends Component<HomeProps, HomeState> {
                   if (!localStorage.getItem("token")) {
                     const user = await userRegister();
 
-                    if (user["code"]) {
+                    if (user["code"] !== 200) {
                       showNotification({
                         title: "Error",
                         message: user["message"],
@@ -579,7 +579,7 @@ export default class Home extends Component<HomeProps, HomeState> {
                   }
 
                   const create = await sessionCreate();
-                  if (create["code"].length !== 15) {
+                  if (create["code"] !== 200) {
                     showNotification({
                       title: "Error",
                       message: create["message"],
@@ -596,7 +596,7 @@ export default class Home extends Component<HomeProps, HomeState> {
                     icon: <PlayArrow />,
                   });
 
-                  setTimeout(() => props.navigate("/" + create["code"]), 1000);
+                  setTimeout(() => props.navigate("/" + create["game"]), 1000);
                 }}
               >
                 <div className="w-full h-full flex p-2 justify-center items-center">
@@ -614,9 +614,9 @@ export default class Home extends Component<HomeProps, HomeState> {
               <Input
                 className="rounded-2xl w-full"
                 size="lg"
-                value={props.code}
+                value={props.game}
                 onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                  props.setCode(event.target.value)
+                  props.setGame(event.target.value)
                 }
                 icon={<Groups />}
                 iconWidth={52}
@@ -632,7 +632,7 @@ export default class Home extends Component<HomeProps, HomeState> {
                       props.theme
                     }
                     onClick={async () => {
-                      if (props.code.length !== 15) {
+                      if (props.game.length !== 15) {
                         showNotification({
                           title: "Error",
                           message: "The specified code is invalid.",
@@ -645,7 +645,7 @@ export default class Home extends Component<HomeProps, HomeState> {
                       if (!localStorage.getItem("token")) {
                         const user = await userRegister();
 
-                        if (user["code"]) {
+                        if (user["code"] !== 200) {
                           showNotification({
                             title: "Error",
                             message: user["message"],
@@ -665,7 +665,7 @@ export default class Home extends Component<HomeProps, HomeState> {
                         localStorage.setItem("token", user["token"]);
                       }
 
-                      const join = await sessionJoin(props.code);
+                      const join = await sessionJoin(props.game);
                       if (join["code"] !== 200) {
                         showNotification({
                           title: "Error",
@@ -683,7 +683,7 @@ export default class Home extends Component<HomeProps, HomeState> {
                         icon: <PlayArrow />,
                       });
 
-                      setTimeout(() => props.navigate("/" + props.code), 1000);
+                      setTimeout(() => props.navigate("/" + props.game), 1000);
                     }}
                   >
                     <div className="w-full h-full flex justify-center items-center">
