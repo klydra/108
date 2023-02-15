@@ -351,28 +351,40 @@ export default class Home extends Component<HomeProps, HomeState> {
                 <div className="text-[1rem] text-card-accent font-semibold tracking-[.01em] font-default">
                   Email
                 </div>
-                <div className="text-[1rem] text-card-accent font-semibold tracking-[.01em] font-default">
-                  Discord
+              </this.Column>
+              <this.Column>
+                <div className="grid gap-[5rem] grid-cols-3">
+                  <div className="text-[1rem] text-card-accent font-semibold tracking-[.01em] font-default hover:scale-125 flex flex-col justify-center items-center">
+                    <img className="h-[4rem]" src="mail.svg" />
+                    Mail
+                  </div>
+                  <div className="text-[1rem] text-card-accent font-semibold tracking-[.01em] font-default hover:scale-125 flex flex-col justify-center items-center">
+                    <img className="h-[4rem]" src="discord.svg" />
+                    Discord
+                  </div>
+                  <div className="text-[1rem] text-card-accent font-semibold tracking-[.01em] font-default hover:scale-125 flex flex-col justify-center items-center">
+                    <img className="h-[4rem]" src="octocat.svg" />
+                    GitHub
+                  </div>
                 </div>
-                <div className="text-[1rem] text-card-accent font-semibold tracking-[.01em] font-default">
-                  Github
+              </this.Column>
+              <this.Column>
+                <div className="grid gap-[5rem] grid-cols-2">
+                  <div className="text-[1rem] text-card-accent font-semibold tracking-[.01em] font-default hover:scale-125 flex flex-col justify-center items-center">
+                    <img className="h-[4rem]" src="mail.svg" />
+                    Mail
+                  </div>
+                  <div className="text-[1rem] text-card-accent font-semibold tracking-[.01em] font-default hover:scale-125 flex flex-col justify-center items-center">
+                    <img className="h-[4rem]" src="discord.svg" />
+                    Discord
+                  </div>
                 </div>
-              </div>
-            </this.Column>
-            <this.Column>
-              <div className="grid gap-[8rem] grid-cols-2">
-                <div className="hover:scale-125"></div>
-                <div className="hover:scale-125"></div>
-                <div className="text-[1rem] text-card-accent font-semibold tracking-[.01em] font-default">
-                  Email
-                </div>
-                <div className="text-[1rem] text-card-accent font-semibold tracking-[.01em] font-default">
-                  Discord
-                </div>
-              </div>
-            </this.Column>
-          </this.Row>
-          <div className="h-[3rem]"></div>
+              </this.Column>
+            </this.Row>
+            <div className="flex justify-center items-center h-[1rem] text-card-accent font-semibold tracking-[.01em] font-default pb-[3rem]">
+              Copyright 2023, Jan Klinge
+            </div>
+          </div>
         </div>
       </div>
     );
