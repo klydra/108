@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
+    "@dicebear/collection": "^5.3.4",
+    "@dicebear/core": "^5.3.4",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@mantine/core": "^5.10.3",

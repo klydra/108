@@ -18,6 +18,8 @@ import { NavigateFunction } from "react-router";
 import { showNotification } from "@mantine/notifications";
 import { PlayArrow, SettingsOutlined, Wifi } from "@mui/icons-material";
 import { Button } from "@mantine/core";
+import { createAvatar } from "@dicebear/core";
+import { loreleiNeutral } from "@dicebear/collection";
 
 interface GameProps {
   game: string;
@@ -213,6 +215,12 @@ export default class Game extends Component<GameProps, GameState> {
       (item) => item.name !== this.state.player?.name
     );
 
+    const avatars = enemies?.map((enemy) =>
+      createAvatar(loreleiNeutral, {
+        seed: enemy.name,
+      })
+    );
+
     return (
       <>
         {/* Own card row */}
@@ -249,8 +257,17 @@ export default class Game extends Component<GameProps, GameState> {
 
         {/* Left card row */}
         <div className="fixed w-44 h-[80%] inset-y-[10%] left-[1%] rotate-180 flex flex-col gap-y-3 justify-center items-end">
-          {enemies && (enemies.length === 2 || enemies.length === 3)
-            ? [...Array(enemies[0].cards)].map((_, index) => {
+          {enemies && (enemies.length === 2 || enemies.length === 3) ? (
+            <>
+              {avatars ? (
+                <div
+                  className="h-24 w-24 mb-6 rounded-xl overflow-hidden"
+                  dangerouslySetInnerHTML={{
+                    __html: avatars[0].toString(),
+                  }}
+                ></div>
+              ) : null}
+              {[...Array(enemies[0].cards)].map((_, index) => {
                 return (
                   <div
                     style={{
@@ -262,14 +279,16 @@ export default class Game extends Component<GameProps, GameState> {
                     <EnemyCardRotated />
                   </div>
                 );
-              })
-            : null}
+              })}
+            </>
+          ) : null}
         </div>
 
         {/* Right card row */}
         <div className="fixed w-44 h-[80%] inset-y-[10%] right-[1%] flex flex-col gap-y-3 justify-center items-end">
-          {enemies && (enemies.length === 2 || enemies.length === 3)
-            ? [...Array(enemies[1].cards)].map((_, index) => {
+          {enemies && (enemies.length === 2 || enemies.length === 3) ? (
+            <>
+              {[...Array(enemies[1].cards)].map((_, index) => {
                 return (
                   <div
                     style={{
@@ -281,14 +300,32 @@ export default class Game extends Component<GameProps, GameState> {
                     <EnemyCardRotated />
                   </div>
                 );
-              })
-            : null}
+              })}
+              {avatars ? (
+                <div
+                  className="h-24 w-24 mb-6 rotate-180 rounded-xl overflow-hidden"
+                  dangerouslySetInnerHTML={{
+                    __html: avatars[1].toString(),
+                  }}
+                ></div>
+              ) : null}
+            </>
+          ) : null}
         </div>
 
         {/* Top card row */}
         <div className="fixed w-[80%] h-44 inset-x-[10%] top-[1%] flex gap-x-3 justify-center items-start">
-          {enemies && (enemies.length === 1 || enemies.length === 3)
-            ? [...Array(enemies[enemies.length === 1 ? 0 : 3].cards)].map(
+          {enemies && (enemies.length === 1 || enemies.length === 3) ? (
+            <>
+              {avatars ? (
+                <div
+                  className="h-24 w-24 mr-6 rounded-xl overflow-hidden"
+                  dangerouslySetInnerHTML={{
+                    __html: avatars[enemies.length === 1 ? 0 : 3].toString(),
+                  }}
+                ></div>
+              ) : null}
+              {[...Array(enemies[enemies.length === 1 ? 0 : 3].cards)].map(
                 (_, index) => {
                   return (
                     <div
@@ -305,8 +342,9 @@ export default class Game extends Component<GameProps, GameState> {
                     </div>
                   );
                 }
-              )
-            : null}
+              )}
+            </>
+          ) : null}
         </div>
 
         {/* Sort button */}
