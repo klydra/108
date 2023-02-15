@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
 	"github.com/oklog/ulid/v2"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
@@ -118,6 +119,14 @@ func main() {
 		"fallback the request to index.html on missing static path (eg. when pretty urls are used with SPA)",
 	)
 
+	var corsOrigins []string
+	app.RootCmd.PersistentFlags().StringSliceVar(
+		&corsOrigins,
+		"corsOrigins",
+		[]string{"https://108.cards", "http://localhost:3000"},
+		"CORS allowed domain origins list",
+	)
+
 	app.RootCmd.ParseFlags(os.Args[1:])
 
 	// ---------------------------------------------------------------
@@ -125,6 +134,12 @@ func main() {
 	// ---------------------------------------------------------------
 
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
+		e.Router.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			Skipper:      middleware.DefaultSkipper,
+			AllowOrigins: corsOrigins,
+			AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
+		}))
+
 		// Attention: API safety checks intentionally removed to save on resources in enclosed system
 
 		e.Router.POST("/user/register", func(c echo.Context) error {
@@ -299,14 +314,20 @@ func main() {
 				return apis.NewBadRequestError("Couldn't find game.", err)
 			}
 
-			var players []string
+			var players []Player
 			err = json.Unmarshal([]byte(game.GetString("players")), &players)
 			if err != nil {
 				return apis.NewApiError(500, "Couldn't get players for game.", err)
 			}
 
 			// Adding player to game
-			updated, err := json.Marshal(append(players, user.GetString("name")))
+			updated, err := json.Marshal(append(players, Player{
+				Name:     user.GetString("name"),
+				Cards:    0,
+				Called:   false,
+				Drawing:  false,
+				Swapping: false,
+			}))
 			if err != nil {
 				return apis.NewApiError(500, "Couldn't generate game update request.", err)
 			}
@@ -315,6 +336,13 @@ func main() {
 			err = app.Dao().SaveRecord(game)
 			if err != nil {
 				return apis.NewApiError(500, "Couldn't add player to game.", err)
+			}
+
+			// Add game to player
+			user.Set("game", game.Id)
+			err = app.Dao().SaveRecord(user)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't update player game.", err)
 			}
 
 			return c.JSON(http.StatusOK, Status{Status: "ok"})
@@ -522,7 +550,7 @@ func main() {
 			}
 
 			if len(user.GetString("game")) == 0 {
-				return c.JSON(http.StatusNoContent, Status{Status: "no-content"})
+				return c.JSON(http.StatusOK, Session{Game: ""})
 			}
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
