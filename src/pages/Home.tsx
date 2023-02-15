@@ -383,7 +383,7 @@ export default class Home extends Component<HomeProps, HomeState> {
         radius="xl"
         size="auto"
       >
-        <div className="w-full h-[15rem] w-[48rem] h-full bg-background flex justify-evenly items-center">
+        <div className="w-full h-[14rem] w-[46rem] h-full bg-background flex justify-evenly items-center">
           <div className="h-full w-[35%] flex flex-col justify-evenly items-center">
             <b className="select-none text-card-accent text-[2rem] font-default">
               Start fresh
@@ -475,7 +475,7 @@ export default class Home extends Component<HomeProps, HomeState> {
                       props.theme
                     }
                     onClick={async () => {
-                      if (props.code.length != 15) {
+                      if (props.code.length !== 15) {
                         showNotification({
                           title: "Error",
                           message: "The specified code is invalid.",
@@ -509,7 +509,7 @@ export default class Home extends Component<HomeProps, HomeState> {
                       }
 
                       const join = await sessionJoin(props.code);
-                      if (join["code"] != 200) {
+                      if (join["code"] !== 200) {
                         showNotification({
                           title: "Error",
                           message: join["message"],
