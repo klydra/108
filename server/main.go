@@ -624,6 +624,10 @@ func main() {
 				return apis.NewApiError(500, "Couldn't get game card stack.", err)
 			}
 
+			if game.GetString("live") != user.GetString("name") {
+				return apis.NewBadRequestError("It's not your turn.", nil)
+			}
+
 			if stack[len(stack)-1][0] == 'p' {
 				// Drawing 2 * n cards
 				if rules.Stack2 {

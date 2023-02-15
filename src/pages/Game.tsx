@@ -8,6 +8,7 @@ import {
   API_NOTIFICATION_GAME_TIMEOUT,
   API_NOTIFICATION_NOTICE_TIMEOUT,
   ensureRegistered,
+  gameDraw,
   gamePlay,
   joinGame,
   sessionOngoing,
@@ -26,6 +27,10 @@ interface GameProps {
 interface GameState {
   game: GameType | undefined;
   player: PlayerType | undefined;
+  animation: {
+    appear: boolean;
+    disappear: boolean;
+  };
 }
 
 export default class Game extends Component<GameProps, GameState> {
@@ -37,6 +42,10 @@ export default class Game extends Component<GameProps, GameState> {
     this.state = {
       game: undefined,
       player: undefined,
+      animation: {
+        appear: false,
+        disappear: false,
+      },
     };
 
     this.pocketbase = new PocketBase(API_HOST);
@@ -116,6 +125,36 @@ export default class Game extends Component<GameProps, GameState> {
         .collection("players")
         .unsubscribe(localStorage.getItem("token")!);
     await this.pocketbase.collection("games").unsubscribe(this.props.game);
+  }
+
+  componentDidUpdate(
+    _: Readonly<GameProps>,
+    prevState: Readonly<GameState>,
+    __?: any
+  ) {
+    if (
+      prevState.game &&
+      this.state.game &&
+      prevState.game!.stack.length < this.state.game!.stack.length
+    )
+      this.setState({
+        animation: {
+          appear: !this.state.animation.appear,
+          disappear: this.state.animation.disappear,
+        },
+      });
+
+    if (
+      prevState.game &&
+      this.state.game &&
+      prevState.game!.stack.length > this.state.game!.stack.length
+    )
+      this.setState({
+        animation: {
+          appear: this.state.animation.appear,
+          disappear: !this.state.animation.disappear,
+        },
+      });
   }
 
   render() {
@@ -244,18 +283,28 @@ export default class Game extends Component<GameProps, GameState> {
         {/* Draw stack */}
         <div className="fixed flex inset-y-1/2 left-[37.5%] right-[50%] inset-y-[42%] flex justify-center items-center">
           <div
-            className="h-full duration-700 ease-out aria-disabled:scale-[166%] aria-disabled:opacity-0 absolute"
-            aria-disabled={false}
+            className="cursor-pointer h-full absolute z-10"
+            onClick={async () => {
+              const play = await gameDraw();
+              if (play["code"] !== 200) {
+                showNotification({
+                  autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                  message: play["message"] ?? "An unknown error occurred.",
+                  color: "red",
+                  icon: <PlayArrow />,
+                });
+              }
+            }}
           >
-            <CardBack />
+            <DisappearCard key={this.state.animation.disappear.toString()} />
           </div>
           <CardBack />
         </div>
 
-        {/* Play stack  */}
+        {/* Play stack */}
         <div className="fixed flex inset-y-1/2 right-[37.5%] left-[50%] inset-y-[42%] flex justify-center items-center">
           <AppearCard
-            key={this.state.game!.stack[this.state.game!.stack.length - 1]}
+            key={this.state.animation.appear.toString()}
             card={codeToType(
               this.state.game!.stack[this.state.game!.stack.length - 1]
             )}
@@ -274,6 +323,20 @@ export default class Game extends Component<GameProps, GameState> {
       </>
     );
   }
+}
+
+function DisappearCard() {
+  const [disappear, setDisappear] = useState(false);
+  setTimeout(() => setDisappear(true), 100);
+
+  return (
+    <div
+      className="h-full duration-700 ease-out aria-disabled:scale-[125%] aria-disabled:opacity-0"
+      aria-disabled={disappear}
+    >
+      <CardBack />
+    </div>
+  );
 }
 
 function AppearCard(props: { card: CardType }) {
