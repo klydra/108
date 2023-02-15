@@ -82,11 +82,11 @@ export async function gameThrow(card: string) {
 }
 
 export async function gameHold() {
-  return _post(API_GAME_WISH, { ...credentials() });
+  return _post(API_GAME_HOLD, { ...credentials() });
 }
 
-export async function gameWish(card: string, color: string) {
-  return _post(API_GAME_HOLD, { ...credentials(), card, color });
+export async function gameWish(color: string) {
+  return _post(API_GAME_WISH, { ...credentials(), color });
 }
 
 export async function gameCall() {

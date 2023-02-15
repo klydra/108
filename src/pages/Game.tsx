@@ -1,6 +1,6 @@
-import React, { Component, useState } from "react";
+import React, { Component, useEffect, useState } from "react";
 import CardFront from "../components/CardFront";
-import { CardType, codeToType, typeToCode } from "../models/Card";
+import { CardColor, CardType, codeToType, typeToCode } from "../models/Card";
 import CardBack from "../components/CardBack";
 import PocketBase from "pocketbase";
 import {
@@ -10,6 +10,7 @@ import {
   ensureRegistered,
   gameDraw,
   gamePlay,
+  gameWish,
   joinGame,
   sessionOngoing,
   sessionStart,
@@ -17,7 +18,7 @@ import {
 import { NavigateFunction } from "react-router";
 import { showNotification } from "@mantine/notifications";
 import { PlayArrow, SettingsOutlined, Wifi } from "@mui/icons-material";
-import { Button } from "@mantine/core";
+import { Button, Modal } from "@mantine/core";
 import { createAvatar } from "@dicebear/core";
 import { loreleiNeutral } from "@dicebear/collection";
 
@@ -29,6 +30,7 @@ interface GameProps {
 interface GameState {
   game: GameType | undefined;
   player: PlayerType | undefined;
+  subscribed: boolean;
   animation: {
     appear: boolean;
     disappear: boolean;
@@ -44,6 +46,7 @@ export default class Game extends Component<GameProps, GameState> {
     this.state = {
       game: undefined,
       player: undefined,
+      subscribed: false,
       animation: {
         appear: false,
         disappear: false,
@@ -89,29 +92,41 @@ export default class Game extends Component<GameProps, GameState> {
       }
     }
 
-    const player = (await this.pocketbase
-      .collection("players")
-      .getOne(localStorage.getItem("token")!)) as Object as PlayerType;
-
-    const game = (await this.pocketbase
-      .collection("games")
-      .getOne(this.props.game)) as Object as GameType;
-
-    if (!this.state.player)
+    if (!this.state.subscribed)
       await this.pocketbase
         .collection("players")
         .subscribe(localStorage.getItem("token")!, (change) =>
           this.setState({ player: change.record as Object as PlayerType })
         );
 
-    if (!this.state.game)
+    if (!this.state.subscribed)
       await this.pocketbase
         .collection("games")
         .subscribe(this.props.game, (change) =>
           this.setState({ game: change.record as Object as GameType })
         );
 
-    this.setState({ player, game });
+    this.setState({ subscribed: true });
+
+    if (!this.state.player || !this.state.game) {
+      const player = (await this.pocketbase
+        .collection("players")
+        .getOne(localStorage.getItem("token")!)) as Object as PlayerType;
+
+      const game = (await this.pocketbase
+        .collection("games")
+        .getOne(this.props.game)) as Object as GameType;
+
+      if (game.live === player.name)
+        showNotification({
+          autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
+          message: "It's your turn!",
+          color: "violet",
+          icon: <PlayArrow />,
+        });
+
+      this.setState({ player, game });
+    }
 
     showNotification({
       autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
@@ -119,14 +134,6 @@ export default class Game extends Component<GameProps, GameState> {
       color: "green",
       icon: <Wifi />,
     });
-
-    if (game.live === player.name)
-      showNotification({
-        autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
-        message: "It's your turn!",
-        color: "violet",
-        icon: <PlayArrow />,
-      });
   }
 
   async componentWillUnmount() {
@@ -143,9 +150,12 @@ export default class Game extends Component<GameProps, GameState> {
     __?: any
   ) {
     if (
-      prevState.game &&
-      this.state.game &&
-      prevState.game!.stack.length < this.state.game!.stack.length
+      (prevState.game &&
+        this.state.game &&
+        prevState.game!.stack.length < this.state.game!.stack.length) ||
+      (prevState.player &&
+        this.state.player &&
+        prevState.player.hand.length > this.state.player.hand.length)
     )
       this.setState({
         animation: {
@@ -155,9 +165,12 @@ export default class Game extends Component<GameProps, GameState> {
       });
 
     if (
-      prevState.game &&
-      this.state.game &&
-      prevState.game!.stack.length > this.state.game!.stack.length
+      (prevState.game &&
+        this.state.game &&
+        prevState.game!.stack.length > this.state.game!.stack.length) ||
+      (prevState.player &&
+        this.state.player &&
+        prevState.player.hand.length < this.state.player.hand.length)
     )
       this.setState({
         animation: {
@@ -231,6 +244,9 @@ export default class Game extends Component<GameProps, GameState> {
   }
 
   Table() {
+    const self = this.state.game?.players.find(
+      (item) => item.name === this.state.player?.name
+    );
     const enemies = this.state.game?.players.filter(
       (item) => item.name !== this.state.player?.name
     );
@@ -327,7 +343,7 @@ export default class Game extends Component<GameProps, GameState> {
                   <div
                     style={{
                       zIndex: index,
-                      maxWidth: (1 / enemies[0].cards) * 30 + "rem",
+                      maxHeight: (1 / enemies[0].cards) * 30 + "rem",
                     }}
                     className=""
                   >
@@ -348,7 +364,7 @@ export default class Game extends Component<GameProps, GameState> {
                   <div
                     style={{
                       zIndex: index,
-                      maxWidth: (1 / enemies[1].cards) * 30 + "rem",
+                      maxHeight: (1 / enemies[1].cards) * 30 + "rem",
                     }}
                     className="duration-200"
                   >
@@ -357,7 +373,7 @@ export default class Game extends Component<GameProps, GameState> {
                 );
               })}
               {avatars ? (
-                <div className="w-full h-20 mt-6 flex justify-end">
+                <div className="w-full h-20 mt-16 flex justify-end">
                   <div className="h-20 w-20 rotate-180 rounded-xl">
                     <div
                       className="h-20 w-20 rounded-xl overflow-hidden absolute z-10 rotate-180"
@@ -427,15 +443,13 @@ export default class Game extends Component<GameProps, GameState> {
           ) : null}
         </div>
 
-        {/* Sort button */}
-        <div className="fixed flex h-[12.5%] left-[10%] right-[80%] bottom-[6%]"></div>
-
         {/* Call button */}
         <div className="fixed flex h-[12.5%] left-[80%] right-[10%] bottom-[6%]"></div>
 
         {/* Draw stack */}
         <div className="fixed flex inset-y-1/2 left-[37.5%] right-[50%] inset-y-[42%] flex justify-center items-center">
           <div
+            key={this.state.animation.disappear.toString()}
             className="cursor-pointer h-full absolute z-10"
             onClick={async () => {
               const play = await gameDraw();
@@ -449,7 +463,7 @@ export default class Game extends Component<GameProps, GameState> {
               }
             }}
           >
-            <DisappearCard key={this.state.animation.disappear.toString()} />
+            <DisappearCard />
           </div>
           <CardBack />
         </div>
@@ -457,13 +471,13 @@ export default class Game extends Component<GameProps, GameState> {
         {/* Play stack */}
         <div className="fixed flex inset-y-1/2 right-[37.5%] left-[50%] inset-y-[42%] flex justify-center items-center">
           <AppearCard
-            key={this.state.animation.appear.toString()}
+            key={this.state.game!.stack.length}
             card={codeToType(
               this.state.game!.stack[this.state.game!.stack.length - 1]
             )}
           />
-          <div
-            key={this.state.game!.stack.length}
+          {/*<div
+            key={this.state.animation.appear.toString()}
             className="scale-95 absolute"
           >
             <CardFront
@@ -471,8 +485,92 @@ export default class Game extends Component<GameProps, GameState> {
                 this.state.game!.stack[this.state.game!.stack.length - 2]
               )}
             />
-          </div>
+          </div>*/}
         </div>
+
+        <Modal
+          opened={!!self?.swapping}
+          onClose={() => {}}
+          closeOnClickOutside={false}
+          centered
+          withCloseButton={false}
+          radius="xl"
+          size="auto"
+        ></Modal>
+
+        <Modal
+          opened={
+            !!this.state.player &&
+            !!this.state.game &&
+            this.state.player!.name === this.state.game!.live &&
+            this.state.game!.stack.pop()?.charAt(1) === CardColor.DARK
+          }
+          onClose={() => {}}
+          closeOnClickOutside={false}
+          centered
+          withCloseButton={false}
+          radius="xl"
+          size="auto"
+        >
+          <div className="h-52 w-52 grid grid-rows-2 grid-cols-2 rounded-2xl gap-[0.3rem]">
+            <div
+              onClick={async () => {
+                const wish = await gameWish("y");
+                if (wish["code"] !== 200) {
+                  showNotification({
+                    autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                    message: wish["message"] ?? "An unknown error occurred.",
+                    color: "red",
+                    icon: <PlayArrow />,
+                  });
+                }
+              }}
+              className="h-full w-full cursor-pointer rounded-tl-2xl duration-200 hover:scale-110 hover:z-10 bg-card-yellow"
+            ></div>
+            <div
+              onClick={async () => {
+                const wish = await gameWish("g");
+                if (wish["code"] !== 200) {
+                  showNotification({
+                    autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                    message: wish["message"] ?? "An unknown error occurred.",
+                    color: "red",
+                    icon: <PlayArrow />,
+                  });
+                }
+              }}
+              className="h-full w-full cursor-pointer rounded-tr-2xl duration-200 hover:scale-110 hover:z-10 bg-card-green"
+            ></div>
+            <div
+              onClick={async () => {
+                const wish = await gameWish("b");
+                if (wish["code"] !== 200) {
+                  showNotification({
+                    autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                    message: wish["message"] ?? "An unknown error occurred.",
+                    color: "red",
+                    icon: <PlayArrow />,
+                  });
+                }
+              }}
+              className="h-full w-full cursor-pointer rounded-bl-2xl duration-200 hover:scale-110 hover:z-10 bg-card-blue"
+            ></div>
+            <div
+              onClick={async () => {
+                const wish = await gameWish("p");
+                if (wish["code"] !== 200) {
+                  showNotification({
+                    autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                    message: wish["message"] ?? "An unknown error occurred.",
+                    color: "red",
+                    icon: <PlayArrow />,
+                  });
+                }
+              }}
+              className="h-full w-full cursor-pointer rounded-br-2xl duration-200 hover:scale-110 hover:z-10 bg-card-purple"
+            ></div>
+          </div>
+        </Modal>
       </>
     );
   }
@@ -480,7 +578,7 @@ export default class Game extends Component<GameProps, GameState> {
 
 function DisappearCard() {
   const [disappear, setDisappear] = useState(false);
-  setTimeout(() => setDisappear(true), 100);
+  useEffect(() => setDisappear(true), []);
 
   return (
     <div
@@ -494,11 +592,11 @@ function DisappearCard() {
 
 function AppearCard(props: { card: CardType }) {
   const [appear, setAppear] = useState(true);
-  setTimeout(() => setAppear(false), 100);
+  useEffect(() => setAppear(false), []);
 
   return (
     <div
-      className="scale-95 duration-700 ease-out aria-disabled:scale-125 aria-disabled:opacity-50 absolute z-10"
+      className="scale-95 duration-700 ease-out aria-disabled:scale-125 aria-disabled:opacity-50 absolute"
       aria-disabled={appear}
     >
       <CardFront card={props.card} />
@@ -508,7 +606,7 @@ function AppearCard(props: { card: CardType }) {
 
 function EnemyCard() {
   const [visible, setVisible] = useState(true);
-  setTimeout(() => setVisible(false), 100);
+  useEffect(() => setVisible(false), []);
 
   return (
     <div
@@ -522,7 +620,7 @@ function EnemyCard() {
 
 function EnemyCardRotated() {
   const [visible, setVisible] = useState(true);
-  setTimeout(() => setVisible(false), 100);
+  useEffect(() => setVisible(false), []);
 
   return (
     <div
