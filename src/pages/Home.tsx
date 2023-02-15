@@ -10,7 +10,7 @@ import {
   PlayArrow,
 } from "@mui/icons-material";
 import {
-  API_NOTIFICATION_TIMEOUT,
+  API_NOTIFICATION_NOTICE_TIMEOUT,
   createGame,
   ensureRegistered,
   sessionJoin,
@@ -648,7 +648,7 @@ export default class Home extends Component<HomeProps, HomeState> {
                     onClick={async () => {
                       if (props.game.length !== 15) {
                         showNotification({
-                          autoClose: API_NOTIFICATION_TIMEOUT,
+                          autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
                           message: "The specified code is invalid.",
                           color: "red",
                           icon: <MoreHoriz />,
@@ -661,7 +661,7 @@ export default class Home extends Component<HomeProps, HomeState> {
                       const join = await sessionJoin(props.game);
                       if (join["code"] !== 200) {
                         showNotification({
-                          autoClose: API_NOTIFICATION_TIMEOUT,
+                          autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
                           message: join["message"],
                           color: "red",
                           icon: <PlayArrow />,

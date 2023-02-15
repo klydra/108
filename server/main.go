@@ -164,37 +164,36 @@ func main() {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
+				return apis.NewBadRequestError("Can't find user.", err)
 			}
 
 			if len(user.GetString("game")) != 0 {
 				// Check for ongoing game
 				game, err := app.Dao().FindRecordById("games", user.GetString("game"))
-				if err != nil {
-					return apis.NewApiError(500, "User registered for game that is absent.", err)
-				}
+				if err == nil {
+					// Registered for valid game
+					// Retrieve ongoing game player data
+					var players []Player
+					err = json.Unmarshal([]byte(game.GetString("players")), &players)
+					if err != nil {
+						return apis.NewApiError(500, "Couldn't get ongoing players.", err)
+					}
 
-				// Retrieve ongoing game player data
-				var players []Player
-				err = json.Unmarshal([]byte(game.GetString("players")), &players)
-				if err != nil {
-					return apis.NewApiError(500, "Couldn't get ongoing players.", err)
-				}
+					// Remove player from ongoing game
+					for i := 0; i < len(players); i++ {
+						if players[i].Name == user.Get("name") {
+							updated, err := json.Marshal(append(players[:i], players[i+1:]...))
+							if err != nil {
+								return apis.NewApiError(500, "Couldn't generate ongoing update request.", err)
+							}
 
-				// Remove player from ongoing game
-				for i := 0; i < len(players); i++ {
-					if players[i].Name == user.Get("name") {
-						updated, err := json.Marshal(append(players[:i], players[i+1:]...))
-						if err != nil {
-							return apis.NewApiError(500, "Couldn't generate ongoing update request.", err)
+							game.Set("players", updated)
+							err = app.Dao().SaveRecord(game)
+							if err != nil {
+								return apis.NewApiError(500, "Couldn't remove player from ongoing game.", err)
+							}
+							break
 						}
-
-						game.Set("players", updated)
-						err = app.Dao().SaveRecord(game)
-						if err != nil {
-							return apis.NewApiError(500, "Couldn't remove player from ongoing game.", err)
-						}
-						break
 					}
 				}
 
@@ -266,7 +265,7 @@ func main() {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
+				return apis.NewBadRequestError("Couldn't find player.", err)
 			}
 
 			if len(user.GetString("game")) != 0 && user.GetString("game") != c.Request().Header.Get("game") {
@@ -311,35 +310,37 @@ func main() {
 			// Retrieve target game to join
 			game, err := app.Dao().FindRecordById("games", c.Request().Header.Get("game"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find game.", err)
+				return apis.NewBadRequestError("Can't find specified game.", err)
 			}
 
 			if len(game.GetString("live")) > 0 && c.Request().Header.Get("game") != user.GetString("game") {
 				return apis.NewBadRequestError("Game has already started.", err)
 			}
 
-			var players []Player
-			err = json.Unmarshal([]byte(game.GetString("players")), &players)
-			if err != nil {
-				return apis.NewApiError(500, "Couldn't get players for game.", err)
-			}
+			if c.Request().Header.Get("game") != user.GetString("game") {
+				var players []Player
+				err = json.Unmarshal([]byte(game.GetString("players")), &players)
+				if err != nil {
+					return apis.NewApiError(500, "Couldn't get players for game.", err)
+				}
 
-			// Adding player to game
-			updated, err := json.Marshal(append(players, Player{
-				Name:     user.GetString("name"),
-				Cards:    0,
-				Called:   false,
-				Drawing:  false,
-				Swapping: false,
-			}))
-			if err != nil {
-				return apis.NewApiError(500, "Couldn't generate game update request.", err)
-			}
+				// Adding player to game
+				updated, err := json.Marshal(append(players, Player{
+					Name:     user.GetString("name"),
+					Cards:    0,
+					Called:   false,
+					Drawing:  false,
+					Swapping: false,
+				}))
+				if err != nil {
+					return apis.NewApiError(500, "Couldn't generate game update request.", err)
+				}
 
-			game.Set("players", updated)
-			err = app.Dao().SaveRecord(game)
-			if err != nil {
-				return apis.NewApiError(500, "Couldn't add player to game.", err)
+				game.Set("players", updated)
+				err = app.Dao().SaveRecord(game)
+				if err != nil {
+					return apis.NewApiError(500, "Couldn't add player to game.", err)
+				}
 			}
 
 			// Add game to player
@@ -356,11 +357,11 @@ func main() {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
+				return apis.NewBadRequestError("Can't find user.", err)
 			}
 
 			if len(user.GetString("game")) == 0 {
-				return apis.NewBadRequestError("User not participating in game.", err)
+				return apis.NewBadRequestError("You are not participating in this game.", err)
 			}
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
@@ -381,11 +382,11 @@ func main() {
 			}
 
 			if players[0].Name != user.GetString("name") {
-				return apis.NewBadRequestError("User is not the host.", err)
+				return apis.NewBadRequestError("You are not the host.", err)
 			}
 
 			if len(players) < 2 {
-				return apis.NewBadRequestError("Not enough players.", err)
+				return apis.NewBadRequestError("Not enough players to start.", err)
 			}
 
 			if !rules.Unlimited {
@@ -481,16 +482,16 @@ func main() {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
+				return apis.NewBadRequestError("Can't find user.", err)
 			}
 
 			if len(user.GetString("game")) == 0 {
-				return apis.NewBadRequestError("User not participating in game.", err)
+				return apis.NewBadRequestError("You are not participating in this game.", err)
 			}
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
 			if err != nil {
-				return apis.NewBadRequestError("User not participating in game.", err)
+				return apis.NewBadRequestError("Can't find specified game.", err)
 			}
 
 			var rules Rules
@@ -512,7 +513,7 @@ func main() {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
+				return apis.NewBadRequestError("Can't find user.", err)
 			}
 
 			if len(user.GetString("game")) != 0 {
@@ -572,7 +573,7 @@ func main() {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
+				return apis.NewBadRequestError("Can't find user.", err)
 			}
 
 			if len(user.GetString("game")) == 0 {
@@ -591,7 +592,7 @@ func main() {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
+				return apis.NewBadRequestError("Can't find user.", err)
 			}
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
@@ -739,14 +740,14 @@ func main() {
 				return apis.NewApiError(500, "Couldn't update player record.", err)
 			}
 
-			return c.JSON(http.StatusOK, Hand{Cards: cards})
+			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
 		e.Router.POST("/game/play", func(c echo.Context) error {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
+				return apis.NewBadRequestError("Can't find user.", err)
 			}
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
@@ -780,7 +781,7 @@ func main() {
 
 			// Checking if player has turn
 			if game.GetString("live") != user.GetString("name") {
-				return apis.NewBadRequestError("It's not the user's turn.", nil)
+				return apis.NewBadRequestError("It's not your turn.", nil)
 			}
 
 			// Retrieve card player wants to play
@@ -810,7 +811,7 @@ func main() {
 			}
 
 			// Checking if card is wish or if previous card has matching color
-			if card[0] != 'w' && card[0] != 'j' && stack[len(stack)-1][1] != card[1] {
+			if card[0] != 'w' && card[0] != 'j' && stack[len(stack)-1][0] != card[0] && stack[len(stack)-1][1] != card[1] {
 				return apis.NewBadRequestError("Card color not matching.", nil)
 			}
 
@@ -832,7 +833,7 @@ func main() {
 			}
 
 			// If player action isn't pending, assigning next player
-			if card[0] == 'j' || card[0] == 'w' || (card[0] == '7' && rules.Swap) {
+			if card[0] != 'j' && card[0] != 'w' && (card[0] != '7' || !rules.Swap) {
 				next := nextPlayer(user.GetString("name"), players, rules)
 				if next < 0 {
 					return apis.NewApiError(500, "Couldn't evaluate next player.", err)
@@ -843,7 +844,7 @@ func main() {
 						return apis.NewApiError(500, "Couldn't evaluate next player.", err)
 					}
 				}
-				game.Set("live", players[next])
+				game.Set("live", players[next].Name)
 			}
 
 			// Check if player has won
@@ -898,14 +899,14 @@ func main() {
 				return apis.NewApiError(500, "Couldn't update player record.", err)
 			}
 
-			return c.JSON(http.StatusOK, Hand{Cards: cards})
+			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
 		e.Router.POST("/game/throw", func(c echo.Context) error {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
+				return apis.NewBadRequestError("Can't find user.", err)
 			}
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
@@ -978,7 +979,7 @@ func main() {
 			}
 
 			// If player action isn't pending, assigning next player
-			if card[0] == 'j' || card[0] == 'w' || (card[0] == '7' && rules.Swap) {
+			if card[0] != 'j' && card[0] != 'w' && (card[0] != '7' || !rules.Swap) {
 				next := nextPlayer(user.GetString("name"), players, rules)
 				if next < 0 {
 					return apis.NewApiError(500, "Couldn't evaluate next player.", err)
@@ -989,7 +990,7 @@ func main() {
 						return apis.NewApiError(500, "Couldn't evaluate next player.", err)
 					}
 				}
-				game.Set("live", players[next])
+				game.Set("live", players[next].Name)
 			}
 
 			// Check if player has won
@@ -1044,14 +1045,14 @@ func main() {
 				return apis.NewApiError(500, "Couldn't update player record.", err)
 			}
 
-			return c.JSON(http.StatusOK, Hand{Cards: cards})
+			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
 		e.Router.POST("/game/hold", func(c echo.Context) error {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
+				return apis.NewBadRequestError("Can't find user.", err)
 			}
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
@@ -1085,7 +1086,7 @@ func main() {
 
 			// Checking if player has turn
 			if game.GetString("live") != user.GetString("name") {
-				return apis.NewBadRequestError("It's not the user's turn.", nil)
+				return apis.NewBadRequestError("It's not your turn.", nil)
 			}
 
 			// Update drawing status
@@ -1137,14 +1138,14 @@ func main() {
 				return apis.NewApiError(500, "Couldn't update player record.", err)
 			}
 
-			return c.JSON(http.StatusOK, Hand{Cards: cards})
+			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
 		e.Router.POST("/game/wish", func(c echo.Context) error {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
+				return apis.NewBadRequestError("Can't find user.", err)
 			}
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
@@ -1172,7 +1173,7 @@ func main() {
 
 			// Checking if player has turn
 			if game.GetString("live") != user.GetString("name") {
-				return apis.NewBadRequestError("It's not the user's turn.", nil)
+				return apis.NewBadRequestError("It's not your turn.", nil)
 			}
 
 			// Retrieve card player wants to play
@@ -1228,14 +1229,14 @@ func main() {
 				return apis.NewApiError(500, "Couldn't update player record.", err)
 			}
 
-			return c.JSON(http.StatusOK, Hand{Cards: cards})
+			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
 		e.Router.POST("/game/call", func(c echo.Context) error {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
+				return apis.NewBadRequestError("Can't find user.", err)
 			}
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
@@ -1263,7 +1264,7 @@ func main() {
 
 			// Checking if player has turn
 			if game.GetString("live") != user.GetString("name") {
-				return apis.NewBadRequestError("It's not the user's turn.", nil)
+				return apis.NewBadRequestError("It's not your turn.", nil)
 			}
 
 			// Update called status
@@ -1308,14 +1309,14 @@ func main() {
 				return apis.NewApiError(500, "Couldn't update player record.", err)
 			}
 
-			return c.JSON(http.StatusOK, Hand{Cards: cards})
+			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
 		e.Router.POST("/game/appeal", func(c echo.Context) error {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
+				return apis.NewBadRequestError("Can't find user.", err)
 			}
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
@@ -1411,14 +1412,14 @@ func main() {
 				return apis.NewApiError(500, "Couldn't update user record.", err)
 			}
 
-			return c.JSON(http.StatusOK, Hand{Cards: cards})
+			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
 		e.Router.POST("/game/switch", func(c echo.Context) error {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
+				return apis.NewBadRequestError("Can't find user.", err)
 			}
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
@@ -1440,7 +1441,7 @@ func main() {
 
 			// Checking if player has turn
 			if game.GetString("live") != user.GetString("name") {
-				return apis.NewBadRequestError("It's not the user's turn.", nil)
+				return apis.NewBadRequestError("It's not your turn.", nil)
 			}
 
 			// Checking if player is currently swapping
@@ -1526,7 +1527,7 @@ func main() {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
+				return apis.NewBadRequestError("Can't find user.", err)
 			}
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))

@@ -3,7 +3,8 @@ import { AccountCircle, PlayArrow } from "@mui/icons-material";
 import React from "react";
 
 export const API_HOST = "http://127.0.0.1:8090";
-export const API_NOTIFICATION_TIMEOUT = 8000;
+export const API_NOTIFICATION_NOTICE_TIMEOUT = 8000;
+export const API_NOTIFICATION_GAME_TIMEOUT = 1000;
 
 async function _post(path: string, headers?: HeadersInit) {
   const response = await fetch(API_HOST + path, {
@@ -110,7 +111,7 @@ export async function ensureRegistered() {
 
     if (user["code"] !== 200) {
       showNotification({
-        autoClose: API_NOTIFICATION_TIMEOUT,
+        autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
         message: user["message"],
         color: "red",
         icon: <AccountCircle />,
@@ -119,7 +120,7 @@ export async function ensureRegistered() {
     }
 
     showNotification({
-      autoClose: API_NOTIFICATION_TIMEOUT,
+      autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
       message: "Created user.",
       color: "green",
       icon: <AccountCircle />,
@@ -139,7 +140,7 @@ export async function createGame() {
   const create = await sessionCreate();
   if (create["code"] !== 200) {
     showNotification({
-      autoClose: API_NOTIFICATION_TIMEOUT,
+      autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
       message: create["message"],
       color: "red",
       icon: <PlayArrow />,
@@ -148,7 +149,7 @@ export async function createGame() {
   }
 
   showNotification({
-    autoClose: API_NOTIFICATION_TIMEOUT,
+    autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
     message: "Created game.",
     color: "green",
     icon: <PlayArrow />,
@@ -161,7 +162,7 @@ export async function joinGame(game: string) {
   const join = await sessionJoin(game);
   if (join["code"] !== 200) {
     showNotification({
-      autoClose: API_NOTIFICATION_TIMEOUT,
+      autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
       message: join["message"],
       color: "red",
       icon: <PlayArrow />,
@@ -170,7 +171,7 @@ export async function joinGame(game: string) {
   }
 
   showNotification({
-    autoClose: API_NOTIFICATION_TIMEOUT,
+    autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
     message: "Joining game...",
     color: "green",
     icon: <PlayArrow />,

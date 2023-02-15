@@ -36,8 +36,8 @@ func init() {
 					"required": false,
 					"unique": false,
 					"options": {
-						"min": 15,
-						"max": 15,
+						"min": 26,
+						"max": 26,
 						"pattern": "^[A-Z0-9]+$"
 					}
 				},

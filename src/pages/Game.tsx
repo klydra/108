@@ -1,12 +1,14 @@
-import React, { Component } from "react";
+import React, { Component, useState } from "react";
 import CardFront from "../components/CardFront";
-import { CardColor, CardFace, CardType, codeToType } from "../models/Card";
+import { CardType, codeToType, typeToCode } from "../models/Card";
 import CardBack from "../components/CardBack";
 import PocketBase from "pocketbase";
 import {
   API_HOST,
-  API_NOTIFICATION_TIMEOUT,
+  API_NOTIFICATION_GAME_TIMEOUT,
+  API_NOTIFICATION_NOTICE_TIMEOUT,
   ensureRegistered,
+  gamePlay,
   joinGame,
   sessionOngoing,
   sessionStart,
@@ -49,7 +51,7 @@ export default class Game extends Component<GameProps, GameState> {
     const ongoing = await sessionOngoing();
     if (!ongoing.hasOwnProperty("game")) {
       showNotification({
-        autoClose: API_NOTIFICATION_TIMEOUT,
+        autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
         message: ongoing["message"],
         color: "red",
         icon: <PlayArrow />,
@@ -59,18 +61,21 @@ export default class Game extends Component<GameProps, GameState> {
       return;
     }
 
-    if (ongoing["game"] !== this.props.game && ongoing["game"] !== "")
-      showNotification({
-        autoClose: API_NOTIFICATION_TIMEOUT,
-        message: "Participating in other game. Leaving...",
-        color: "yellow",
-        icon: <PlayArrow />,
-      });
+    if (ongoing["game"] !== this.props.game) {
+      if (ongoing["game"] !== "") {
+        showNotification({
+          autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
+          message: "Participating in other game. Leaving...",
+          color: "yellow",
+          icon: <PlayArrow />,
+        });
+      }
 
-    const join = await joinGame(this.props.game);
-    if (join !== this.props.game) {
-      this.props.navigate("/");
-      return;
+      const join = await joinGame(this.props.game);
+      if (join !== this.props.game) {
+        this.props.navigate("/");
+        return;
+      }
     }
 
     const player = (await this.pocketbase
@@ -98,7 +103,7 @@ export default class Game extends Component<GameProps, GameState> {
     this.setState({ player, game });
 
     showNotification({
-      autoClose: API_NOTIFICATION_TIMEOUT,
+      autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
       message: "Connected to game.",
       color: "green",
       icon: <Wifi />,
@@ -138,7 +143,7 @@ export default class Game extends Component<GameProps, GameState> {
             const start = await sessionStart();
             if (start["code"] !== 200) {
               showNotification({
-                autoClose: API_NOTIFICATION_TIMEOUT,
+                autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
                 message: start["message"],
                 color: "red",
                 icon: <SettingsOutlined />,
@@ -147,7 +152,7 @@ export default class Game extends Component<GameProps, GameState> {
             }
 
             showNotification({
-              autoClose: API_NOTIFICATION_TIMEOUT,
+              autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
               message: "Starting game...",
               color: "green",
               icon: <SettingsOutlined />,
@@ -163,11 +168,6 @@ export default class Game extends Component<GameProps, GameState> {
   }
 
   Table() {
-    const card: CardType = {
-      face: CardFace.NUMBER_3,
-      color: CardColor.PURPLE,
-    };
-
     return (
       <>
         {/* Own card row */}
@@ -177,12 +177,25 @@ export default class Game extends Component<GameProps, GameState> {
             .map((card: CardType, index) => {
               return (
                 <div
+                  key={typeToCode(card)}
                   style={{
                     zIndex: this.state.player!.hand.length - index,
                     maxWidth: (1 / this.state.player!.hand.length) * 30 + "rem",
                   }}
                   className="cursor-pointer hover:-translate-y-3 hover:scale-110 duration-100 w-fit ease-out aria-disabled:-translate-y-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0"
                   aria-disabled={false}
+                  onClick={async () => {
+                    const play = await gamePlay(typeToCode(card));
+                    if (play["code"] !== 200) {
+                      showNotification({
+                        autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                        message:
+                          play["message"] ?? "An unknown error occurred.",
+                        color: "red",
+                        icon: <PlayArrow />,
+                      });
+                    }
+                  }}
                 >
                   <CardFront card={card} />
                 </div>
@@ -241,17 +254,38 @@ export default class Game extends Component<GameProps, GameState> {
 
         {/* Play stack  */}
         <div className="fixed flex inset-y-1/2 right-[37.5%] left-[50%] inset-y-[42%] flex justify-center items-center">
-          <div className="scale-75">
-            <CardFront card={card} />
-          </div>
+          <AppearCard
+            key={this.state.game!.stack[this.state.game!.stack.length - 1]}
+            card={codeToType(
+              this.state.game!.stack[this.state.game!.stack.length - 1]
+            )}
+          />
           <div
-            className="scale-75 duration-700 ease-out aria-disabled:scale-125 aria-disabled:opacity-50 absolute "
-            aria-disabled={false}
+            key={this.state.game!.stack.length}
+            className="scale-95 absolute"
           >
-            <CardFront card={card} />
+            <CardFront
+              card={codeToType(
+                this.state.game!.stack[this.state.game!.stack.length - 2]
+              )}
+            />
           </div>
         </div>
       </>
     );
   }
+}
+
+function AppearCard(props: { card: CardType }) {
+  const [appear, setAppear] = useState(true);
+  setTimeout(() => setAppear(false), 100);
+
+  return (
+    <div
+      className="scale-95 duration-700 ease-out aria-disabled:scale-125 aria-disabled:opacity-50 absolute z-10"
+      aria-disabled={appear}
+    >
+      <CardFront card={props.card} />
+    </div>
+  );
 }
