@@ -260,12 +260,21 @@ export default class Game extends Component<GameProps, GameState> {
           {enemies && (enemies.length === 2 || enemies.length === 3) ? (
             <>
               {avatars ? (
-                <div
-                  className="h-24 w-24 mb-6 rounded-xl overflow-hidden"
-                  dangerouslySetInnerHTML={{
-                    __html: avatars[0].toString(),
-                  }}
-                ></div>
+                <div className="h-20 w-20 mb-6">
+                  <div
+                    className="h-20 w-20 rounded-xl overflow-hidden absolute z-10"
+                    dangerouslySetInnerHTML={{
+                      __html: avatars[0].toString(),
+                    }}
+                  ></div>
+                  <div
+                    style={{
+                      display:
+                        this.state.game?.live === enemies[0].name ? "" : "none",
+                    }}
+                    className="m-2 h-16 w-16 rounded-xl bg-contrast duration-300 absolute animate-ping"
+                  ></div>
+                </div>
               ) : null}
               {[...Array(enemies[0].cards)].map((_, index) => {
                 return (
@@ -302,12 +311,21 @@ export default class Game extends Component<GameProps, GameState> {
                 );
               })}
               {avatars ? (
-                <div
-                  className="h-24 w-24 mb-6 rotate-180 rounded-xl overflow-hidden"
-                  dangerouslySetInnerHTML={{
-                    __html: avatars[1].toString(),
-                  }}
-                ></div>
+                <div className="h-20 w-20 mb-6 rotate-180 rounded-xl overflow-hidden">
+                  <div
+                    className="h-20 w-20 rounded-xl overflow-hidden absolute z-10"
+                    dangerouslySetInnerHTML={{
+                      __html: avatars[1].toString(),
+                    }}
+                  ></div>
+                  <div
+                    style={{
+                      display:
+                        this.state.game?.live === enemies[1].name ? "" : "none",
+                    }}
+                    className="m-2 h-16 w-16 rounded-xl bg-contrast duration-300 absolute animate-ping"
+                  ></div>
+                </div>
               ) : null}
             </>
           ) : null}
@@ -318,12 +336,24 @@ export default class Game extends Component<GameProps, GameState> {
           {enemies && (enemies.length === 1 || enemies.length === 3) ? (
             <>
               {avatars ? (
-                <div
-                  className="h-24 w-24 mr-6 rounded-xl overflow-hidden"
-                  dangerouslySetInnerHTML={{
-                    __html: avatars[enemies.length === 1 ? 0 : 3].toString(),
-                  }}
-                ></div>
+                <div className="h-20 w-20 mr-6">
+                  <div
+                    className="h-20 w-20 rounded-xl overflow-hidden absolute z-10"
+                    dangerouslySetInnerHTML={{
+                      __html: avatars[enemies.length === 1 ? 0 : 3].toString(),
+                    }}
+                  ></div>
+                  <div
+                    style={{
+                      display:
+                        this.state.game?.live ===
+                        enemies[enemies.length === 1 ? 0 : 3].name
+                          ? ""
+                          : "none",
+                    }}
+                    className="m-2 h-16 w-16 rounded-xl bg-contrast duration-300 absolute animate-ping"
+                  ></div>
+                </div>
               ) : null}
               {[...Array(enemies[enemies.length === 1 ? 0 : 3].cards)].map(
                 (_, index) => {
