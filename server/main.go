@@ -313,7 +313,7 @@ func main() {
 				return apis.NewApiError(500, "Couldn't add player to game.", err)
 			}
 
-			return c.NoContent(http.StatusOK)
+			return c.JSON(http.StatusOK, Session{Game: game.Id})
 		})
 
 		e.Router.POST("/session/start", func(c echo.Context) error {
