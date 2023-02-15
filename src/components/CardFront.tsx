@@ -32,7 +32,11 @@ function Card(props: { card: CardType }) {
     <>
       <div className="select-none overflow-hidden h-52 min-h-fit min-w-fit aspect-[9/16] rounded-2xl p-0.5 bg-card-accent">
         {/* Top of card */}
-        <div className={"w-full h-[13%] rounded-t-[0.9rem] bg-card-" + color()}>
+        <div
+          className={
+            "w-full h-[14%] -mb-[1%] rounded-t-[0.9rem] bg-card-" + color()
+          }
+        >
           <div className="pr-1.5 pt-1 flex justify-end items-start w-full h-full text-background leading-none">
             <CardIcon face={props.card.face} weight={CardIconWeight.OUTER} />
           </div>
@@ -55,7 +59,11 @@ function Card(props: { card: CardType }) {
           </div>
         </div>
         {/* Bottom of card */}
-        <div className={"w-full h-[13%] rounded-b-[0.9rem] bg-card-" + color()}>
+        <div
+          className={
+            "w-full h-[14%] -mt-[1%] rounded-b-[0.9rem] bg-card-" + color()
+          }
+        >
           <div className="pl-1.5 pb-1 flex justify-start items-end w-full h-full">
             <CardIcon face={props.card.face} weight={CardIconWeight.OUTER} />
           </div>
@@ -101,7 +109,7 @@ function WishCard(props: { card: CardType }) {
           <div className="w-full h-full bg-card-green rounded-br-[0.9rem]"></div>
         </div>
         <div className="absolute h-full w-full">
-          <div className="w-full h-[13%] rounded-t-[0.9rem]">
+          <div className="w-full h-[14%] -mb-[1%] rounded-t-[0.9rem]">
             <div className="font-card text-[1.5rem] pr-1.5 pt-1 flex justify-end items-start w-full h-full text-background leading-none">
               <CardIcon face={props.card.face} weight={CardIconWeight.OUTER} />
             </div>
@@ -118,7 +126,7 @@ function WishCard(props: { card: CardType }) {
               </div>
             </div>
           </div>
-          <div className="w-full h-[13%] rounded-b-[0.9rem]">
+          <div className="w-full h-[14%] -mt-[1%] rounded-b-[0.9rem]">
             <div className="pl-1.5 pb-1 flex justify-start items-end w-full h-full">
               <CardIcon face={props.card.face} weight={CardIconWeight.OUTER} />
             </div>
