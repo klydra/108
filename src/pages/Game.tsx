@@ -158,6 +158,8 @@ export default class Game extends Component<GameProps, GameState> {
   }
 
   render() {
+    console.log(this.state);
+
     return (
       <>
         {/* Table */}
@@ -207,6 +209,10 @@ export default class Game extends Component<GameProps, GameState> {
   }
 
   Table() {
+    const enemies = this.state.game?.players.filter(
+      (item) => item.name !== this.state.player?.name
+    );
+
     return (
       <>
         {/* Own card row */}
@@ -216,13 +222,12 @@ export default class Game extends Component<GameProps, GameState> {
             .map((card: CardType, index) => {
               return (
                 <div
-                  key={typeToCode(card)}
+                  key={typeToCode(card) + index}
                   style={{
                     zIndex: this.state.player!.hand.length - index,
-                    maxWidth: (1 / this.state.player!.hand.length) * 30 + "rem",
+                    maxWidth: (1 / this.state.player!.hand.length) * 40 + "rem",
                   }}
-                  className="cursor-pointer hover:-translate-y-3 hover:scale-110 duration-100 w-fit ease-out aria-disabled:-translate-y-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0"
-                  aria-disabled={false}
+                  className="cursor-pointer hover:-translate-y-3 hover:scale-110 duration-200 w-fit ease-out"
                   onClick={async () => {
                     const play = await gamePlay(typeToCode(card));
                     if (play["code"] !== 200) {
@@ -243,35 +248,65 @@ export default class Game extends Component<GameProps, GameState> {
         </div>
 
         {/* Left card row */}
-        <div className="fixed w-44 h-[80%] inset-y-[10%] left-[1%] rotate-180 flex flex-col justify-center items-end">
-          <div
-            className="w-full duration-100 ease-out aria-disabled:-translate-x-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0 "
-            aria-disabled={false}
-          >
-            <CardBack rotated />
-          </div>
+        <div className="fixed w-44 h-[80%] inset-y-[10%] left-[1%] rotate-180 flex flex-col gap-y-3 justify-center items-end">
+          {enemies && (enemies.length === 2 || enemies.length === 3)
+            ? [...Array(enemies[0].cards)].map((_, index) => {
+                return (
+                  <div
+                    style={{
+                      zIndex: index,
+                      maxWidth: (1 / enemies[0].cards) * 30 + "rem",
+                    }}
+                    className="min-h-full"
+                  >
+                    <EnemyCardRotated />
+                  </div>
+                );
+              })
+            : null}
         </div>
 
         {/* Right card row */}
-        <div className="fixed w-44 h-[80%] inset-y-[10%] right-[1%] flex flex-col justify-center items-end">
-          <div
-            className="w-full duration-100 ease-out aria-disabled:-translate-x-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0"
-            aria-disabled={false}
-          >
-            <CardBack rotated />
-          </div>
+        <div className="fixed w-44 h-[80%] inset-y-[10%] right-[1%] flex flex-col gap-y-3 justify-center items-end">
+          {enemies && (enemies.length === 2 || enemies.length === 3)
+            ? [...Array(enemies[1].cards)].map((_, index) => {
+                return (
+                  <div
+                    style={{
+                      zIndex: index,
+                      maxWidth: (1 / enemies[1].cards) * 30 + "rem",
+                    }}
+                    className="duration-200"
+                  >
+                    <EnemyCardRotated />
+                  </div>
+                );
+              })
+            : null}
         </div>
 
         {/* Top card row */}
-        <div className="fixed w-[80%] h-44 inset-x-[10%] top-[1%] gap-2 flex justify-center items-start">
-          <div
-            className="h-full duration-100 ease-out aria-disabled:translate-y-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0"
-            aria-disabled={false}
-          >
-            <CardBack />
-          </div>
-          <CardBack />
-          <CardBack />
+        <div className="fixed w-[80%] h-44 inset-x-[10%] top-[1%] flex gap-x-3 justify-center items-start">
+          {enemies && (enemies.length === 1 || enemies.length === 3)
+            ? [...Array(enemies[enemies.length === 1 ? 0 : 3].cards)].map(
+                (_, index) => {
+                  return (
+                    <div
+                      style={{
+                        zIndex: index,
+                        maxWidth:
+                          (1 / enemies[enemies.length === 1 ? 0 : 3].cards) *
+                            30 +
+                          "rem",
+                      }}
+                      className="duration-200"
+                    >
+                      <EnemyCard />
+                    </div>
+                  );
+                }
+              )
+            : null}
         </div>
 
         {/* Sort button */}
@@ -349,6 +384,34 @@ function AppearCard(props: { card: CardType }) {
       aria-disabled={appear}
     >
       <CardFront card={props.card} />
+    </div>
+  );
+}
+
+function EnemyCard() {
+  const [visible, setVisible] = useState(true);
+  setTimeout(() => setVisible(false), 100);
+
+  return (
+    <div
+      className="h-44 duration-200 ease-out aria-disabled:translate-y-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0"
+      aria-disabled={visible}
+    >
+      <CardBack />
+    </div>
+  );
+}
+
+function EnemyCardRotated() {
+  const [visible, setVisible] = useState(true);
+  setTimeout(() => setVisible(false), 100);
+
+  return (
+    <div
+      className="w-44 duration-200 ease-out aria-disabled:-translate-x-60 aria-disabled:scale-0 aria-disabled:duration-300 aria-disabled:opacity-0"
+      aria-disabled={visible}
+    >
+      <CardBack rotated />
     </div>
   );
 }

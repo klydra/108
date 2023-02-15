@@ -837,7 +837,7 @@ func main() {
 			}
 
 			// If player action isn't pending, assigning next player
-			if card[0] != 'j' && card[0] != 'w' && (card[0] != '7' || !rules.Swap) {
+			if card[0] != 'j' && card[0] != 'w' && (card[0] != '7' && !rules.Swap) {
 				next := nextPlayer(user.GetString("name"), players, rules)
 				if next < 0 {
 					return apis.NewApiError(500, "Couldn't evaluate next player.", err)
