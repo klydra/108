@@ -9,10 +9,12 @@ import {
   ensureRegistered,
   joinGame,
   sessionOngoing,
+  sessionStart,
 } from "../api/API";
 import { NavigateFunction } from "react-router";
 import { showNotification } from "@mantine/notifications";
-import { PlayArrow, Wifi } from "@mui/icons-material";
+import { PlayArrow, SettingsOutlined, Wifi } from "@mui/icons-material";
+import { Button } from "@mantine/core";
 
 interface GameProps {
   game: string;
@@ -39,38 +41,36 @@ export default class Game extends Component<GameProps, GameState> {
   }
 
   async componentDidMount() {
-    console.log("mount");
-
-    if (!(await ensureRegistered())) return;
+    if (!(await ensureRegistered())) {
+      this.props.navigate("/");
+      return;
+    }
 
     const ongoing = await sessionOngoing();
-    switch (ongoing["code"]) {
-      case 200:
-        if (ongoing["code"] !== this.props.game) {
-          showNotification({
-            autoClose: API_NOTIFICATION_TIMEOUT,
-            message: "Participating in other game. Leaving...",
-            color: "yellow",
-            icon: <PlayArrow />,
-          });
+    if (!ongoing.hasOwnProperty("game")) {
+      showNotification({
+        autoClose: API_NOTIFICATION_TIMEOUT,
+        message: ongoing["message"],
+        color: "red",
+        icon: <PlayArrow />,
+      });
 
-          const game = await joinGame(this.props.game);
-          if (game !== this.props.game) return;
-        }
-        break;
+      this.props.navigate("/");
+      return;
+    }
 
-      case 204:
-        const game = await joinGame(this.props.game);
-        if (game !== this.props.game) return;
-        break;
+    if (ongoing["game"] !== this.props.game && ongoing["game"] !== "")
+      showNotification({
+        autoClose: API_NOTIFICATION_TIMEOUT,
+        message: "Participating in other game. Leaving...",
+        color: "yellow",
+        icon: <PlayArrow />,
+      });
 
-      default:
-        showNotification({
-          autoClose: API_NOTIFICATION_TIMEOUT,
-          message: ongoing["message"],
-          color: "red",
-          icon: <PlayArrow />,
-        });
+    const join = await joinGame(this.props.game);
+    if (join !== this.props.game) {
+      this.props.navigate("/");
+      return;
     }
 
     const player = (await this.pocketbase
@@ -117,7 +117,7 @@ export default class Game extends Component<GameProps, GameState> {
     return (
       <>
         {/* Table */}
-        <div className="flex justify-center items-center bg-background h-[100vh] w-[100vw] px-[5%] py-[5%]">
+        <div className="absolute flex justify-center items-center bg-background h-[100vh] w-[100vw] px-[5%] py-[5%]">
           <div className="bg-table-background h-full w-full rounded-2xl drop-shadow-[0_5px_5px_rgba(255,255,255,0.25)] shadow-card-yellow"></div>
         </div>
 
@@ -127,7 +127,39 @@ export default class Game extends Component<GameProps, GameState> {
   }
 
   Settings() {
-    return <></>;
+    return (
+      <div className="fixed h-full w-full flex justify-center items-center">
+        <Button
+          uppercase
+          className={
+            "h-36 w-36 rounded-[10rem] text-card-accent hover:bg-background bg-background"
+          }
+          onClick={async () => {
+            const join = await sessionStart();
+            if (join["code"] !== 200) {
+              showNotification({
+                autoClose: API_NOTIFICATION_TIMEOUT,
+                message: join["message"],
+                color: "red",
+                icon: <SettingsOutlined />,
+              });
+              return;
+            }
+
+            showNotification({
+              autoClose: API_NOTIFICATION_TIMEOUT,
+              message: "Starting game...",
+              color: "green",
+              icon: <SettingsOutlined />,
+            });
+          }}
+        >
+          <div className="w-full h-full flex p-2 justify-center items-center">
+            <PlayArrow style={{ width: "100%", height: "100%" }} />
+          </div>
+        </Button>
+      </div>
+    );
   }
 
   Table() {

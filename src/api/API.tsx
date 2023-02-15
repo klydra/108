@@ -2,35 +2,31 @@ import { showNotification } from "@mantine/notifications";
 import { AccountCircle, PlayArrow } from "@mui/icons-material";
 import React from "react";
 
-export const API_HOST = "https://api.108.cards";
+export const API_HOST = "http://127.0.0.1:8090";
 export const API_NOTIFICATION_TIMEOUT = 8000;
 
 async function _get(path: string, headers?: HeadersInit) {
-  const request = await fetch(API_HOST + path, {
+  const response = await fetch(API_HOST + path, {
     method: "GET",
     headers: headers,
   });
 
-  if (parseInt(request.headers.get("content-length") ?? "0") > 0)
-    return {
-      ...(await request.json()),
-      code: request.status,
-    };
-  else return { code: request.status };
+  return {
+    ...(await response.json()),
+    code: response.status,
+  };
 }
 
 async function _post(path: string, headers?: HeadersInit) {
-  const request = await fetch(API_HOST + path, {
+  const response = await fetch(API_HOST + path, {
     method: "POST",
     headers: headers,
   });
 
-  if (parseInt(request.headers.get("content-length") ?? "0") > 0)
-    return {
-      ...(await request.json()),
-      code: request.status,
-    };
-  else return { code: request.status };
+  return {
+    ...(await response.json()),
+    code: response.status,
+  };
 }
 
 const API_USER_REGISTER = "/user/register";
@@ -147,9 +143,13 @@ export async function ensureRegistered() {
     });
 
     localStorage.setItem("token", user["token"]);
-  }
 
-  return localStorage.getItem("token");
+    console.log(user);
+
+    return user["token"];
+  } else {
+    return localStorage.getItem("token");
+  }
 }
 
 export async function createGame() {
@@ -193,5 +193,5 @@ export async function joinGame(game: string) {
     icon: <PlayArrow />,
   });
 
-  return join["game"];
+  return game;
 }
