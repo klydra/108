@@ -70,8 +70,8 @@ export default class Home extends Component<HomeProps, HomeState> {
       <div className="bg-background w-full flex justify-center">
         <div className="w-full max-w-[120rem]">
           <div className="w-full h-[100vh] flex flex-col justify-evenly items-center">
-            <div className="w-full h-full flex flex-col justify-evenly items-center gap-y-32">
-              <div className="-mt-12 px-12 w-full flex flex-col justify-center items-center gap-y-16">
+            <div className="w-full h-full flex flex-col justify-evenly items-center gap-y-16">
+              <div className="mt-12 px-12 w-full flex flex-col justify-center items-center gap-y-16">
                 <div className="flex justify-center items-end gap-x-12">
                   <div className="h-[150%]">
                     <this.Icon />
