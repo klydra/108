@@ -327,6 +327,57 @@ export default class Home extends Component<HomeProps, HomeState> {
               </this.Column>
             </this.Row>
             <this.Heading title="contact"/>
+            <this.Row>
+              <this.Column>
+                <div className="h-[5rem] flex w-full justify-center items-center">
+                  <p className="px-2 pb-2 text-[2.2rem] text-card-accent font-semibold tracking-[.01em] font-default"> Jan Klinge (Klydra) </p>
+                </div>
+              </this.Column>
+              <this.Column>
+                <div className="h-[5rem] flex w-full justify-center items-center">
+                  <p className="px-2 pb-2 text-[2.2rem] text-card-accent font-semibold tracking-[.01em] font-default"> Justin Lippold (FluVacc) </p>
+                </div>
+              </this.Column>
+              <this.Column>
+                <div className="grid gap-[5rem] grid-cols-3">
+                  <div className="hover:scale-125">
+
+                  </div>
+                  <div className="hover:scale-125">
+
+                  </div>
+                  <div className="hover:scale-125">
+
+                  </div>
+                  <div className="text-[1rem] text-card-accent font-semibold tracking-[.01em] font-default">
+                    Email
+                  </div>
+                  <div className="text-[1rem] text-card-accent font-semibold tracking-[.01em] font-default">
+                    Discord
+                  </div>
+                  <div className="text-[1rem] text-card-accent font-semibold tracking-[.01em] font-default">
+                    Github
+                  </div>
+                </div>
+              </this.Column>
+              <this.Column>
+                <div className="grid gap-[8rem] grid-cols-2">
+                  <div className="hover:scale-125">
+
+                  </div>
+                  <div className="hover:scale-125">
+
+                  </div>
+                  <div className="text-[1rem] text-card-accent font-semibold tracking-[.01em] font-default">
+                    Email
+                  </div>
+                  <div className="text-[1rem] text-card-accent font-semibold tracking-[.01em] font-default">
+                    Discord
+                  </div>
+                </div>
+              </this.Column>
+            </this.Row>
+            <div className="h-[3rem]"></div>
           </div>
         </div>
     );
