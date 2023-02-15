@@ -3,7 +3,15 @@ import { Button, Input, Modal } from "@mantine/core";
 import CardFront from "../components/CardFront";
 import { CardColor, CardFace } from "../models/Card";
 import CardBack from "../components/CardBack";
-import { ArrowCircleDown, Groups, PlayArrow } from "@mui/icons-material";
+import {
+  AccountCircle,
+  ArrowCircleDown,
+  Groups,
+  MoreHoriz,
+  PlayArrow,
+} from "@mui/icons-material";
+import { sessionCreate, sessionJoin, userRegister } from "../api/api";
+import { showNotification } from "@mantine/notifications";
 
 interface HomeProps {}
 
@@ -389,7 +397,50 @@ export default class Home extends Component<HomeProps, HomeState> {
                   " bg-card-" +
                   props.theme
                 }
-                onClick={() => {}}
+                onClick={async () => {
+                  if (!localStorage.getItem("token")) {
+                    const user = await userRegister();
+
+                    if (user["code"]) {
+                      showNotification({
+                        title: "Error",
+                        message: user["message"],
+                        color: "red",
+                        icon: <AccountCircle />,
+                      });
+                      return;
+                    }
+
+                    showNotification({
+                      title: "Success",
+                      message: "Created user.",
+                      color: "green",
+                      icon: <AccountCircle />,
+                    });
+
+                    localStorage.setItem("token", user["token"]);
+                  }
+
+                  const create = await sessionCreate();
+                  if (create["code"].length !== 15) {
+                    showNotification({
+                      title: "Error",
+                      message: create["message"],
+                      color: "red",
+                      icon: <PlayArrow />,
+                    });
+                    return;
+                  }
+
+                  console.log(create["code"]);
+
+                  showNotification({
+                    title: "Success",
+                    message: "Joining game...",
+                    color: "green",
+                    icon: <PlayArrow />,
+                  });
+                }}
               >
                 <div className="w-full h-full flex p-2 justify-center items-center">
                   <PlayArrow style={{ width: "100%", height: "100%" }} />
@@ -413,7 +464,7 @@ export default class Home extends Component<HomeProps, HomeState> {
                 icon={<Groups />}
                 iconWidth={52}
                 placeholder="Code"
-                maxLength={20}
+                maxLength={15}
                 rightSection={
                   <Button
                     uppercase
@@ -423,7 +474,58 @@ export default class Home extends Component<HomeProps, HomeState> {
                       " bg-card-" +
                       props.theme
                     }
-                    onClick={() => {}}
+                    onClick={async () => {
+                      if (props.code.length != 15) {
+                        showNotification({
+                          title: "Error",
+                          message: "The specified code is invalid.",
+                          color: "red",
+                          icon: <MoreHoriz />,
+                        });
+                        return;
+                      }
+
+                      if (!localStorage.getItem("token")) {
+                        const user = await userRegister();
+
+                        if (user["code"]) {
+                          showNotification({
+                            title: "Error",
+                            message: user["message"],
+                            color: "red",
+                            icon: <AccountCircle />,
+                          });
+                          return;
+                        }
+
+                        showNotification({
+                          title: "Success",
+                          message: "Created user.",
+                          color: "green",
+                          icon: <AccountCircle />,
+                        });
+
+                        localStorage.setItem("token", user["token"]);
+                      }
+
+                      const join = await sessionJoin(props.code);
+                      if (join["code"] != 200) {
+                        showNotification({
+                          title: "Error",
+                          message: join["message"],
+                          color: "red",
+                          icon: <PlayArrow />,
+                        });
+                        return;
+                      }
+
+                      showNotification({
+                        title: "Success",
+                        message: "Joining game...",
+                        color: "green",
+                        icon: <PlayArrow />,
+                      });
+                    }}
                   >
                     <div className="w-full h-full flex justify-center items-center">
                       <PlayArrow style={{ width: "150%", height: "150%" }} />

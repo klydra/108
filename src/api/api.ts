@@ -1,4 +1,4 @@
-export const API_HOST = "http://localhost:8090/api";
+export const API_HOST = "https://api.108.cards";
 
 async function _get(path: string, headers?: HeadersInit) {
   return (
@@ -44,8 +44,8 @@ export async function sessionCreate() {
   return _post(API_SESSION_CREATE, { ...credentials() });
 }
 
-export async function sessionJoin() {
-  return _post(API_SESSION_JOIN, { ...credentials() });
+export async function sessionJoin(code: string) {
+  return _post(API_SESSION_JOIN, { ...credentials(), code });
 }
 
 export async function sessionStart() {
