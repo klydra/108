@@ -158,7 +158,7 @@ function Plus(props: { content: string; weight: CardIconWeight }) {
   switch (props.weight) {
     case CardIconWeight.OUTER:
       return (
-        <p className="font-card my-0.5 text-[1rem] text-background leading-none">
+        <p className="font-card my-[0.04rem] text-[1.4rem] text-background leading-none">
           {props.content}
         </p>
       );
