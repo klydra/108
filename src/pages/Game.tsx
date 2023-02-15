@@ -3,8 +3,10 @@ import CardFront from "../components/CardFront";
 import { CardColor, CardFace, CardType } from "../models/Card";
 import CardBack from "../components/CardBack";
 import PocketBase from "pocketbase";
-import { API_HOST } from "../api/api";
+import { API_HOST, userRegister } from "../api/api";
 import { NavigateFunction } from "react-router";
+import { showNotification } from "@mantine/notifications";
+import { AccountCircle, Wifi } from "@mui/icons-material";
 
 interface GameProps {
   code: string;
@@ -31,11 +33,32 @@ export default class Game extends Component<GameProps, GameState> {
   }
 
   async componentDidMount() {
-    const player = localStorage.getItem("token")
-      ? ((await this.pocketbase
-          .collection("players")
-          .getOne(localStorage.getItem("token")!)) as Object as PlayerType)
-      : undefined;
+    if (!localStorage.getItem("token")) {
+      const user = await userRegister();
+
+      if (user["code"]) {
+        showNotification({
+          title: "Error",
+          message: user["message"],
+          color: "red",
+          icon: <AccountCircle />,
+        });
+        return;
+      }
+
+      showNotification({
+        title: "Success",
+        message: "Created user.",
+        color: "green",
+        icon: <AccountCircle />,
+      });
+
+      localStorage.setItem("token", user["token"]);
+    }
+
+    const player = (await this.pocketbase
+      .collection("players")
+      .getOne(localStorage.getItem("token")!)) as Object as PlayerType;
 
     const game = (await this.pocketbase
       .collection("games")
@@ -56,14 +79,13 @@ export default class Game extends Component<GameProps, GameState> {
         );
 
     this.setState({ player, game });
-  }
 
-  componentDidUpdate(
-    _: Readonly<GameProps>,
-    __: Readonly<GameState>,
-    ___?: any
-  ) {
-    console.log(this.state.game?.stack);
+    showNotification({
+      title: "Success",
+      message: "Connected to game.",
+      color: "green",
+      icon: <Wifi />,
+    });
   }
 
   async componentWillUnmount() {
