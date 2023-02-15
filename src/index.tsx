@@ -12,6 +12,7 @@ import {
   useParams,
 } from "react-router-dom";
 import Game from "./pages/Game";
+import Incompatible from "./pages/Incompatible";
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 
@@ -38,12 +39,16 @@ root.render(
     }}
   >
     <NotificationsProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route index path="/" element={<HomeRoute />} />
-          <Route path=":game" element={<GameRoute />} />
-        </Routes>
-      </BrowserRouter>
+      {window.innerHeight >= 600 && window.innerWidth >= 800 ? (
+        <BrowserRouter>
+          <Routes>
+            <Route index path="/" element={<HomeRoute />} />
+            <Route path=":game" element={<GameRoute />} />
+          </Routes>
+        </BrowserRouter>
+      ) : (
+        <Incompatible />
+      )}
     </NotificationsProvider>
   </MantineProvider>
 );
