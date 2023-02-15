@@ -18,6 +18,9 @@ module.exports = {
         "card-block-outer": "5rem",
         "card-block-inner": "7rem",
         "card-direction-outer": "4rem",
+        "card-icon-outer": "1rem",
+        "card-icon-inner": "2.5rem",
+        "card-icon-border": "0.8rem",
       },
     },
     colors: {
