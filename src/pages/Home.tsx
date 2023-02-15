@@ -12,8 +12,11 @@ import {
 } from "@mui/icons-material";
 import { sessionCreate, sessionJoin, userRegister } from "../api/api";
 import { showNotification } from "@mantine/notifications";
+import { NavigateFunction } from "react-router";
 
-interface HomeProps {}
+interface HomeProps {
+  navigate: NavigateFunction;
+}
 
 interface HomeState {
   modal: boolean;
@@ -102,6 +105,7 @@ export default class Home extends Component<HomeProps, HomeState> {
                   code={this.state.code}
                   setCode={(code: string) => this.setState({ code })}
                   theme={this.themeName()}
+                  navigate={this.props.navigate}
                 />
                 <div className="hidden bg-card-yellow bg-card-green bg-card-blue bg-card-purple hover:bg-card-yellow hover:bg-card-green hover:bg-card-blue hover:bg-card-purple"></div>
               </div>
@@ -373,6 +377,7 @@ export default class Home extends Component<HomeProps, HomeState> {
     code: string;
     setCode: Function;
     theme: string;
+    navigate: NavigateFunction;
   }) {
     return (
       <Modal
@@ -432,14 +437,14 @@ export default class Home extends Component<HomeProps, HomeState> {
                     return;
                   }
 
-                  console.log(create["code"]);
-
                   showNotification({
                     title: "Success",
                     message: "Joining game...",
                     color: "green",
                     icon: <PlayArrow />,
                   });
+
+                  setTimeout(() => props.navigate("/" + create["code"]), 1000);
                 }}
               >
                 <div className="w-full h-full flex p-2 justify-center items-center">
@@ -525,6 +530,8 @@ export default class Home extends Component<HomeProps, HomeState> {
                         color: "green",
                         icon: <PlayArrow />,
                       });
+
+                      setTimeout(() => props.navigate("/" + props.code), 1000);
                     }}
                   >
                     <div className="w-full h-full flex justify-center items-center">
