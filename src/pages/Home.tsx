@@ -540,7 +540,7 @@ export default class Home extends Component<HomeProps, HomeState> {
         radius="xl"
         size="auto"
       >
-        <div className="w-full h-[14rem] w-[46rem] h-full bg-background flex justify-evenly items-center">
+        <div className="w-full h-[15rem] w-[47rem] h-full bg-background flex justify-evenly items-center">
           <div className="h-full w-[35%] flex flex-col justify-evenly items-center">
             <b className="select-none text-card-accent text-[2rem] font-default">
               Start fresh
