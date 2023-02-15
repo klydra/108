@@ -18,6 +18,10 @@ import (
 	_ "main/migrations"
 )
 
+type Status struct {
+	Status string `json:"status" xml:"status"`
+}
+
 type Registration struct {
 	Name  string `json:"name" xml:"name"`
 	Token string `json:"token" xml:"token"`
@@ -313,7 +317,7 @@ func main() {
 				return apis.NewApiError(500, "Couldn't add player to game.", err)
 			}
 
-			return c.JSON(http.StatusOK, Session{Game: game.Id})
+			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
 		e.Router.POST("/session/start", func(c echo.Context) error {
@@ -416,7 +420,7 @@ func main() {
 				return apis.NewApiError(500, "Couldn't start game.", err)
 			}
 
-			return c.NoContent(http.StatusOK)
+			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
 		e.Router.POST("/session/rules", func(c echo.Context) error {
@@ -447,7 +451,7 @@ func main() {
 				return apis.NewApiError(500, "Couldn't save rules for game.", err)
 			}
 
-			return c.NoContent(http.StatusOK)
+			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
 		e.Router.POST("/session/leave", func(c echo.Context) error {
@@ -507,7 +511,7 @@ func main() {
 				}
 			}
 
-			return c.NoContent(http.StatusOK)
+			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
 		e.Router.POST("/session/ongoing", func(c echo.Context) error {
@@ -518,7 +522,7 @@ func main() {
 			}
 
 			if len(user.GetString("game")) == 0 {
-				return c.NoContent(http.StatusNoContent)
+				return c.JSON(http.StatusNoContent, Status{Status: "no-content"})
 			}
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
@@ -1461,7 +1465,7 @@ func main() {
 				return apis.NewApiError(500, "Couldn't update player record.", err)
 			}
 
-			return c.NoContent(http.StatusOK)
+			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
 		e.Router.POST("/game/timeout", func(c echo.Context) error {
@@ -1562,7 +1566,7 @@ func main() {
 				return apis.NewApiError(500, "Couldn't update player record.", err)
 			}
 
-			return c.NoContent(http.StatusOK)
+			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
 		return nil
