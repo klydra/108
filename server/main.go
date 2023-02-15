@@ -123,7 +123,7 @@ func main() {
 	app.RootCmd.PersistentFlags().StringSliceVar(
 		&corsOrigins,
 		"corsOrigins",
-		[]string{"https://108.cards", "http://localhost:3000"},
+		[]string{"https://108.cards", "http://localhost:3000", "http://127.0.0.1:3001"},
 		"CORS allowed domain origins list",
 	)
 
@@ -314,6 +314,10 @@ func main() {
 				return apis.NewBadRequestError("Couldn't find game.", err)
 			}
 
+			if len(game.GetString("live")) > 0 {
+				return apis.NewBadRequestError("Game has already started.", err)
+			}
+
 			var players []Player
 			err = json.Unmarshal([]byte(game.GetString("players")), &players)
 			if err != nil {
@@ -376,6 +380,10 @@ func main() {
 				return apis.NewApiError(500, "Couldn't get players.", err)
 			}
 
+			if players[0].Name != user.GetString("name") {
+				return apis.NewBadRequestError("User is not the host.", err)
+			}
+
 			if len(players) < 2 {
 				return apis.NewBadRequestError("Not enough players.", err)
 			}
@@ -384,8 +392,11 @@ func main() {
 				give := len(players) * rules.Count
 				var stack []string
 
-				for give*2 < len(stack) {
+				for {
 					stack = append(stack, DECK...)
+					if give*2 < len(stack) {
+						break
+					}
 				}
 
 				rand.Shuffle(len(stack), func(i, j int) { stack[i], stack[j] = stack[j], stack[i] })
@@ -393,48 +404,57 @@ func main() {
 				for i := 0; i < len(players); i++ {
 					var hand []string
 
-					for i := 0; i < rules.Count; i++ {
+					for j := 0; j < rules.Count; j++ {
 						index := rand.Intn(len(stack) - 1)
 						hand = append(hand, stack[index])
 						stack = append(stack[:index], stack[index+1:]...)
 					}
 
-					user, err := app.Dao().FindFirstRecordByData("users", "name", players[i].Name)
+					players[i].Cards = rules.Count
+
+					user, err := app.Dao().FindFirstRecordByData("players", "name", players[i].Name)
 					if err != nil {
 						return apis.NewApiError(500, "Couldn't retrieve player "+players[i].Name+".", err)
 					}
 
-					cards, err := json.Marshal(append(players[:i], players[i+1:]...))
+					handUpdate, err := json.Marshal(hand)
 					if err != nil {
 						return apis.NewApiError(500, "Couldn't generate player hand update.", err)
 					}
 
-					user.Set("hand", cards)
+					user.Set("hand", handUpdate)
 					err = app.Dao().SaveRecord(user)
 					if err != nil {
 						return apis.NewApiError(500, "Couldn't assign player hand.", err)
 					}
 				}
+
+				stackUpdate, err := json.Marshal(stack)
+				if err != nil {
+					return apis.NewApiError(500, "Couldn't get game stack update.", err)
+				}
+
+				game.Set("stack", stackUpdate)
 			} else {
 				for i := 0; i < len(players); i++ {
 					var hand []string
 
-					for i := 0; i < rules.Count; i++ {
+					for j := 0; j < rules.Count; j++ {
 						index := rand.Intn(len(DECK) - 1)
 						hand = append(hand, DECK[index])
 					}
 
-					user, err := app.Dao().FindFirstRecordByData("users", "name", players[i].Name)
+					user, err := app.Dao().FindFirstRecordByData("players", "name", players[i].Name)
 					if err != nil {
 						return apis.NewApiError(500, "Couldn't retrieve player "+players[i].Name+".", err)
 					}
 
-					cards, err := json.Marshal(append(players[:i], players[i+1:]...))
+					handUpdate, err := json.Marshal(hand)
 					if err != nil {
 						return apis.NewApiError(500, "Couldn't generate player hand update.", err)
 					}
 
-					user.Set("hand", cards)
+					user.Set("hand", handUpdate)
 					err = app.Dao().SaveRecord(user)
 					if err != nil {
 						return apis.NewApiError(500, "Couldn't assign player hand.", err)
@@ -442,7 +462,13 @@ func main() {
 				}
 			}
 
+			playersUpdate, err := json.Marshal(players)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get player update.", err)
+			}
+
 			game.Set("live", user.GetString("name"))
+			game.Set("players", playersUpdate)
 			err = app.Dao().SaveRecord(game)
 			if err != nil {
 				return apis.NewApiError(500, "Couldn't start game.", err)
@@ -561,22 +587,6 @@ func main() {
 			return c.JSON(http.StatusOK, Session{Game: game.Id})
 		})
 
-		e.Router.POST("/session/hand", func(c echo.Context) error {
-			// Retrieve target user
-			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
-			if err != nil {
-				return apis.NewBadRequestError("Couldn't find user.", err)
-			}
-
-			var cards []string
-			err = json.Unmarshal([]byte(user.GetString("hand")), &cards)
-			if err != nil {
-				return apis.NewApiError(500, "Couldn't get player hand.", err)
-			}
-
-			return c.JSON(http.StatusOK, Hand{Cards: cards})
-		})
-
 		e.Router.POST("/game/draw", func(c echo.Context) error {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
@@ -617,8 +627,11 @@ func main() {
 				// Drawing 2 * n cards
 				if rules.Stack2 {
 					stacked := 1
-					for stack[len(stack)-stacked][0] == 'p' {
+					for {
 						stacked++
+						if stack[len(stack)-stacked][0] == 'p' {
+							break
+						}
 					}
 
 					index := stacked*2 + 1
@@ -633,8 +646,11 @@ func main() {
 				// Drawing 4 * n cards
 				if rules.Stack4 {
 					stacked := 1
-					for stack[len(stack)-stacked][0] == 'p' {
+					for {
 						stacked++
+						if stack[len(stack)-stacked][0] == 'p' {
+							break
+						}
 					}
 
 					index := stacked*4 + 1
@@ -651,19 +667,25 @@ func main() {
 					cards = append(cards, stack[0])
 					stack = append(stack, stack[1:]...)
 
-					for len(stack) > 1 && cards[len(cards)-1][1] != stack[len(stack)-1][1] {
+					for {
 						cards = append(cards, stack[0])
 						stack = append(stack, stack[1:]...)
+						if len(stack) > 1 && cards[len(cards)-1][1] != stack[len(stack)-1][1] {
+							break
+						}
 					}
 				} else {
 					index := rand.Intn(len(stack) - 2)
 					cards = append(cards, stack[index])
 					stack = append(stack[:index], stack[index+1:]...)
 
-					for len(stack) > 1 && cards[len(cards)-1][1] != stack[len(stack)-1][1] {
+					for {
 						index := rand.Intn(len(stack) - 2)
 						cards = append(cards, stack[index])
 						stack = append(stack[:index], stack[index+1:]...)
+						if len(stack) > 1 && cards[len(cards)-1][1] != stack[len(stack)-1][1] {
+							break
+						}
 					}
 				}
 			} else {
@@ -705,7 +727,7 @@ func main() {
 
 			game.Set("players", playersUpdate)
 			game.Set("stack", stackUpdate)
-			user.Set("stack", cardsUpdate)
+			user.Set("hand", cardsUpdate)
 
 			err = app.Dao().SaveRecord(game)
 			if err != nil {
@@ -1339,7 +1361,7 @@ func main() {
 
 					// Draw 2 cards if possible
 					draw := 2
-					for len(stack) > 1 && draw > 0 {
+					for {
 						if rules.Ordered {
 							cards = append(cards, stack[0])
 							stack = append(stack, stack[1:]...)
@@ -1349,6 +1371,10 @@ func main() {
 							stack = append(stack[:index], stack[index+1:]...)
 						}
 						draw--
+
+						if len(stack) > 1 && draw > 0 {
+							break
+						}
 					}
 
 					break

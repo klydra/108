@@ -5,18 +5,6 @@ import React from "react";
 export const API_HOST = "http://127.0.0.1:8090";
 export const API_NOTIFICATION_TIMEOUT = 8000;
 
-async function _get(path: string, headers?: HeadersInit) {
-  const response = await fetch(API_HOST + path, {
-    method: "GET",
-    headers: headers,
-  });
-
-  return {
-    ...(await response.json()),
-    code: response.status,
-  };
-}
-
 async function _post(path: string, headers?: HeadersInit) {
   const response = await fetch(API_HOST + path, {
     method: "POST",
@@ -36,7 +24,6 @@ const API_SESSION_LEAVE = "/session/leave";
 const API_SESSION_START = "/session/start";
 const API_SESSION_RULES = "/session/rules";
 const API_SESSION_ONGOING = "/session/ongoing";
-const API_SESSION_HAND = "/session/hand";
 const API_GAME_DRAW = "/game/draw";
 const API_GAME_PLAY = "/game/play";
 const API_GAME_THROW = "/game/throw";
@@ -79,10 +66,6 @@ export async function sessionLeave() {
 
 export async function sessionOngoing() {
   return _post(API_SESSION_ONGOING, { ...credentials() });
-}
-
-export async function sessionHand() {
-  return _get(API_SESSION_HAND, { ...credentials() });
 }
 
 export async function gameDraw() {
