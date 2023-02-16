@@ -37,7 +37,7 @@ type Player struct {
 	Cards    int    `json:"cards" xml:"cards"`
 	Called   bool   `json:"called" xml:"called"`
 	Drawable bool   `json:"drawable" xml:"drawable"`
-	Swapping bool   `json:"switching" xml:"switching"`
+	Swapping bool   `json:"swapping" xml:"swapping"`
 	Stacking bool   `json:"stacking" xml:"stacking"`
 }
 
@@ -968,7 +968,6 @@ func main() {
 				if card[0] == 'p' {
 					players[next].Stacking = true
 				}
-
 				game.Set("live", players[next].Name)
 			}
 
@@ -1193,8 +1192,8 @@ func main() {
 
 			game.Set("players", playersUpdate)
 			game.Set("stack", stackUpdate)
+			game.Set("rules", rulesUpdate)
 			user.Set("hand", cardsUpdate)
-			user.Set("rules", rulesUpdate)
 
 			err = app.Dao().SaveRecord(game)
 			if err != nil {
@@ -1623,31 +1622,40 @@ func main() {
 				return apis.NewBadRequestError("Player in other game.", nil)
 			}
 
-			// Update game cards
-			var cards1 int
-			var cards2 int
-			for i := 0; i < len(players); i++ {
-				if players[i].Name == user.GetString("player") {
-					cards1 = players[i].Cards
-				}
-				if players[i].Name == user.GetString("name") {
-					cards2 = players[i].Cards
-				}
-			}
-			for i := 0; i < len(players); i++ {
-				if players[i].Name == user.GetString("player") {
-					players[i].Cards = cards2
-				}
-				if players[i].Name == user.GetString("name") {
-					players[i].Cards = cards1
-				}
-			}
-
 			// Update hands
 			hand1 := user.GetString("hand")
 			hand2 := player.GetString("hand")
+			player.Set("hand", hand1)
 			user.Set("hand", hand2)
-			user.Set("hand", hand1)
+
+			// Update game cards
+			for i := 0; i < len(players); i++ {
+				if players[i].Name == user.GetString("player") {
+					var count []string
+					err = json.Unmarshal([]byte(hand1), &count)
+					if err != nil {
+						return apis.NewApiError(500, "Couldn't get first hand.", err)
+					}
+
+					players[i].Cards = len(count)
+				}
+				if players[i].Name == user.GetString("name") {
+					var count []string
+					err = json.Unmarshal([]byte(hand2), &count)
+					if err != nil {
+						return apis.NewApiError(500, "Couldn't get second hand.", err)
+					}
+
+					players[i].Cards = len(count)
+				}
+			}
+
+			// Finish switching
+			for i := 0; i < len(players); i++ {
+				if players[i].Name == user.GetString("name") {
+					players[i].Swapping = false
+				}
+			}
 
 			// Shifting turn
 			next := nextPlayer(user.GetString("name"), players, rules)

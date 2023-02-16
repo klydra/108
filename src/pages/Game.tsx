@@ -10,6 +10,7 @@ import {
   ensureRegistered,
   gameDraw,
   gamePlay,
+  gameSwitch,
   gameWish,
   joinGame,
   sessionOngoing,
@@ -17,7 +18,12 @@ import {
 } from "../api/API";
 import { NavigateFunction } from "react-router";
 import { showNotification } from "@mantine/notifications";
-import { PlayArrow, SettingsOutlined, Wifi } from "@mui/icons-material";
+import {
+  PlayArrow,
+  SettingsOutlined,
+  SwapHoriz,
+  Wifi,
+} from "@mui/icons-material";
 import { Button, Modal } from "@mantine/core";
 import { createAvatar } from "@dicebear/core";
 import { loreleiNeutral } from "@dicebear/collection";
@@ -102,9 +108,22 @@ export default class Game extends Component<GameProps, GameState> {
     if (!this.state.subscribed)
       await this.pocketbase
         .collection("games")
-        .subscribe(this.props.game, (change) =>
-          this.setState({ game: change.record as Object as GameType })
-        );
+        .subscribe(this.props.game, (change) => {
+          const game = change.record as Object as GameType;
+          this.setState({ game });
+          if (
+            this.state.player &&
+            this.state.player!.name === game.live &&
+            game.players.find((player) => player.name === game.live)?.swapping
+          ) {
+            showNotification({
+              autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
+              message: "Select whom you want to swap with.",
+              color: "violet",
+              icon: <SwapHoriz />,
+            });
+          }
+        });
 
     this.setState({ subscribed: true });
 
@@ -301,13 +320,13 @@ export default class Game extends Component<GameProps, GameState> {
                 }}
               ></div>
               <div
+                className="m-2 h-20 w-20 rounded-xl bg-contrast duration-300 absolute animate-ping"
                 style={{
                   display:
                     this.state.game?.live === this.state.player?.name
                       ? ""
                       : "none",
                 }}
-                className="m-2 h-20 w-20 rounded-xl bg-contrast duration-300 absolute animate-ping"
               ></div>
             </div>
           ) : null}
@@ -319,7 +338,29 @@ export default class Game extends Component<GameProps, GameState> {
             <>
               {avatars ? (
                 <div className="w-full mb-6 h-20 flex justify-end">
-                  <div className="h-20 w-20">
+                  <div
+                    className="h-20 w-20"
+                    style={{
+                      cursor: self?.swapping ? "pointer" : "",
+                    }}
+                    onClick={
+                      self?.swapping
+                        ? async () => {
+                            const swap = await gameSwitch(enemies[0].name);
+                            if (swap["code"] !== 200) {
+                              showNotification({
+                                autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                                message:
+                                  swap["message"] ??
+                                  "An unknown error occurred.",
+                                color: "red",
+                                icon: <SwapHoriz />,
+                              });
+                            }
+                          }
+                        : undefined
+                    }
+                  >
                     <div
                       className="h-20 w-20 rounded-xl overflow-hidden absolute z-10 rotate-180"
                       dangerouslySetInnerHTML={{
@@ -327,13 +368,15 @@ export default class Game extends Component<GameProps, GameState> {
                       }}
                     ></div>
                     <div
+                      className="m-2 h-16 w-16 rounded-xl bg-contrast duration-300 absolute animate-ping"
                       style={{
                         display:
-                          this.state.game?.live === enemies[0].name
+                          this.state.game?.live === enemies[0].name ||
+                          self?.swapping
                             ? ""
                             : "none",
+                        backgroundColor: self?.swapping ? "purple" : "",
                       }}
-                      className="m-2 h-16 w-16 rounded-xl bg-contrast duration-300 absolute animate-ping"
                     ></div>
                   </div>
                 </div>
@@ -374,7 +417,30 @@ export default class Game extends Component<GameProps, GameState> {
               })}
               {avatars ? (
                 <div className="w-full h-20 mt-16 flex justify-end">
-                  <div className="h-20 w-20 rotate-180 rounded-xl">
+                  {/* TODO */}
+                  <div
+                    className="h-20 w-20 rotate-180 rounded-xl"
+                    style={{
+                      cursor: self?.swapping ? "pointer" : "",
+                    }}
+                    onClick={
+                      self?.swapping
+                        ? async () => {
+                            const swap = await gameSwitch(enemies[1].name);
+                            if (swap["code"] !== 200) {
+                              showNotification({
+                                autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                                message:
+                                  swap["message"] ??
+                                  "An unknown error occurred.",
+                                color: "red",
+                                icon: <SwapHoriz />,
+                              });
+                            }
+                          }
+                        : undefined
+                    }
+                  >
                     <div
                       className="h-20 w-20 rounded-xl overflow-hidden absolute z-10 rotate-180"
                       dangerouslySetInnerHTML={{
@@ -382,13 +448,15 @@ export default class Game extends Component<GameProps, GameState> {
                       }}
                     ></div>
                     <div
+                      className="m-2 h-16 w-16 rounded-xl bg-contrast duration-300 absolute animate-ping"
                       style={{
                         display:
-                          this.state.game?.live === enemies[1].name
+                          this.state.game?.live === enemies[1].name ||
+                          self?.swapping
                             ? ""
                             : "none",
+                        backgroundColor: self?.swapping ? "purple" : "",
                       }}
-                      className="m-2 h-16 w-16 rounded-xl bg-contrast duration-300 absolute animate-ping"
                     ></div>
                   </div>
                 </div>
@@ -402,7 +470,30 @@ export default class Game extends Component<GameProps, GameState> {
           {enemies && (enemies.length === 1 || enemies.length === 3) ? (
             <>
               {avatars ? (
-                <div className="h-20 w-20 mr-6">
+                <div
+                  className="h-20 w-20 mr-6"
+                  style={{
+                    cursor: self?.swapping ? "pointer" : "",
+                  }}
+                  onClick={
+                    self?.swapping
+                      ? async () => {
+                          const swap = await gameSwitch(
+                            enemies[enemies.length === 1 ? 0 : 2].name
+                          );
+                          if (swap["code"] !== 200) {
+                            showNotification({
+                              autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                              message:
+                                swap["message"] ?? "An unknown error occurred.",
+                              color: "red",
+                              icon: <SwapHoriz />,
+                            });
+                          }
+                        }
+                      : undefined
+                  }
+                >
                   <div
                     className="h-20 w-20 rounded-xl overflow-hidden absolute z-10"
                     dangerouslySetInnerHTML={{
@@ -410,14 +501,16 @@ export default class Game extends Component<GameProps, GameState> {
                     }}
                   ></div>
                   <div
+                    className="m-2 h-16 w-16 rounded-xl bg-contrast duration-300 absolute animate-ping"
                     style={{
                       display:
                         this.state.game?.live ===
-                        enemies[enemies.length === 1 ? 0 : 2].name
+                          enemies[enemies.length === 1 ? 0 : 2].name ||
+                        self?.swapping
                           ? ""
                           : "none",
+                      backgroundColor: self?.swapping ? "purple" : "",
                     }}
-                    className="m-2 h-16 w-16 rounded-xl bg-contrast duration-300 absolute animate-ping"
                   ></div>
                 </div>
               ) : null}
@@ -487,18 +580,6 @@ export default class Game extends Component<GameProps, GameState> {
             />
           </div>*/}
         </div>
-
-        {!!self?.swapping ? (
-          <Modal
-            opened={true}
-            onClose={() => {}}
-            closeOnClickOutside={false}
-            centered
-            withCloseButton={false}
-            radius="xl"
-            size="auto"
-          ></Modal>
-        ) : null}
 
         {!!this.state.player &&
         !!this.state.game &&
