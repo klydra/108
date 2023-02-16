@@ -488,89 +488,91 @@ export default class Game extends Component<GameProps, GameState> {
           </div>*/}
         </div>
 
-        <Modal
-          opened={!!self?.swapping}
-          onClose={() => {}}
-          closeOnClickOutside={false}
-          centered
-          withCloseButton={false}
-          radius="xl"
-          size="auto"
-        ></Modal>
+        {!!self?.swapping ? (
+          <Modal
+            opened={true}
+            onClose={() => {}}
+            closeOnClickOutside={false}
+            centered
+            withCloseButton={false}
+            radius="xl"
+            size="auto"
+          ></Modal>
+        ) : null}
 
-        <Modal
-          opened={
-            !!this.state.player &&
-            !!this.state.game &&
-            this.state.player!.name === this.state.game!.live &&
-            this.state.game!.stack.pop()?.charAt(1) === CardColor.DARK
-          }
-          onClose={() => {}}
-          closeOnClickOutside={false}
-          centered
-          withCloseButton={false}
-          radius="xl"
-          size="auto"
-        >
-          <div className="h-52 w-52 grid grid-rows-2 grid-cols-2 rounded-2xl gap-[0.3rem]">
-            <div
-              onClick={async () => {
-                const wish = await gameWish("y");
-                if (wish["code"] !== 200) {
-                  showNotification({
-                    autoClose: API_NOTIFICATION_GAME_TIMEOUT,
-                    message: wish["message"] ?? "An unknown error occurred.",
-                    color: "red",
-                    icon: <PlayArrow />,
-                  });
-                }
-              }}
-              className="h-full w-full cursor-pointer rounded-tl-2xl duration-200 hover:scale-110 hover:z-10 bg-card-yellow"
-            ></div>
-            <div
-              onClick={async () => {
-                const wish = await gameWish("g");
-                if (wish["code"] !== 200) {
-                  showNotification({
-                    autoClose: API_NOTIFICATION_GAME_TIMEOUT,
-                    message: wish["message"] ?? "An unknown error occurred.",
-                    color: "red",
-                    icon: <PlayArrow />,
-                  });
-                }
-              }}
-              className="h-full w-full cursor-pointer rounded-tr-2xl duration-200 hover:scale-110 hover:z-10 bg-card-green"
-            ></div>
-            <div
-              onClick={async () => {
-                const wish = await gameWish("b");
-                if (wish["code"] !== 200) {
-                  showNotification({
-                    autoClose: API_NOTIFICATION_GAME_TIMEOUT,
-                    message: wish["message"] ?? "An unknown error occurred.",
-                    color: "red",
-                    icon: <PlayArrow />,
-                  });
-                }
-              }}
-              className="h-full w-full cursor-pointer rounded-bl-2xl duration-200 hover:scale-110 hover:z-10 bg-card-blue"
-            ></div>
-            <div
-              onClick={async () => {
-                const wish = await gameWish("p");
-                if (wish["code"] !== 200) {
-                  showNotification({
-                    autoClose: API_NOTIFICATION_GAME_TIMEOUT,
-                    message: wish["message"] ?? "An unknown error occurred.",
-                    color: "red",
-                    icon: <PlayArrow />,
-                  });
-                }
-              }}
-              className="h-full w-full cursor-pointer rounded-br-2xl duration-200 hover:scale-110 hover:z-10 bg-card-purple"
-            ></div>
-          </div>
-        </Modal>
+        {!!this.state.player &&
+        !!this.state.game &&
+        this.state.player!.name === this.state.game!.live &&
+        this.state.game!.stack.pop()?.charAt(1) === CardColor.DARK ? (
+          <Modal
+            opened={true}
+            onClose={() => {}}
+            closeOnClickOutside={false}
+            centered
+            withCloseButton={false}
+            radius="xl"
+            size="auto"
+          >
+            <div className="h-52 w-52 grid grid-rows-2 grid-cols-2 rounded-2xl gap-[0.3rem]">
+              <div
+                onClick={async () => {
+                  const wish = await gameWish("y");
+                  if (wish["code"] !== 200) {
+                    showNotification({
+                      autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                      message: wish["message"] ?? "An unknown error occurred.",
+                      color: "red",
+                      icon: <PlayArrow />,
+                    });
+                  }
+                }}
+                className="h-full w-full cursor-pointer rounded-tl-2xl duration-200 hover:scale-110 hover:z-10 bg-card-yellow"
+              ></div>
+              <div
+                onClick={async () => {
+                  const wish = await gameWish("g");
+                  if (wish["code"] !== 200) {
+                    showNotification({
+                      autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                      message: wish["message"] ?? "An unknown error occurred.",
+                      color: "red",
+                      icon: <PlayArrow />,
+                    });
+                  }
+                }}
+                className="h-full w-full cursor-pointer rounded-tr-2xl duration-200 hover:scale-110 hover:z-10 bg-card-green"
+              ></div>
+              <div
+                onClick={async () => {
+                  const wish = await gameWish("b");
+                  if (wish["code"] !== 200) {
+                    showNotification({
+                      autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                      message: wish["message"] ?? "An unknown error occurred.",
+                      color: "red",
+                      icon: <PlayArrow />,
+                    });
+                  }
+                }}
+                className="h-full w-full cursor-pointer rounded-bl-2xl duration-200 hover:scale-110 hover:z-10 bg-card-blue"
+              ></div>
+              <div
+                onClick={async () => {
+                  const wish = await gameWish("p");
+                  if (wish["code"] !== 200) {
+                    showNotification({
+                      autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                      message: wish["message"] ?? "An unknown error occurred.",
+                      color: "red",
+                      icon: <PlayArrow />,
+                    });
+                  }
+                }}
+                className="h-full w-full cursor-pointer rounded-br-2xl duration-200 hover:scale-110 hover:z-10 bg-card-purple"
+              ></div>
+            </div>
+          </Modal>
+        ) : null}
       </>
     );
   }

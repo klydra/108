@@ -32,16 +32,13 @@ type Session struct {
 	Game string `json:"game" xml:"game"`
 }
 
-type Hand struct {
-	Cards []string `json:"cards" xml:"cards"`
-}
-
 type Player struct {
 	Name     string `json:"name" xml:"name"`
 	Cards    int    `json:"cards" xml:"cards"`
 	Called   bool   `json:"called" xml:"called"`
 	Drawable bool   `json:"drawable" xml:"drawable"`
 	Swapping bool   `json:"switching" xml:"switching"`
+	Stacking bool   `json:"stacking" xml:"stacking"`
 }
 
 type Rules struct {
@@ -656,22 +653,25 @@ func main() {
 				return apis.NewApiError(500, "Couldn't get game card stack.", err)
 			}
 
+			// Retrieving player status
+			var player Player
+			for i := 0; i < len(players); i++ {
+				if players[i].Name == user.GetString("name") {
+					player = players[i]
+				}
+			}
+
 			if game.GetString("live") != user.GetString("name") {
 				return apis.NewBadRequestError("It's not your turn.", nil)
 			}
 
-			for i := 0; i < len(players); i++ {
-				if players[i].Name == user.GetString("name") {
-					if !players[i].Drawable {
-						return apis.NewBadRequestError("You can't draw anymore cards.", nil)
-					}
-					break
-				}
+			if !player.Drawable {
+				return apis.NewBadRequestError("You can't draw anymore cards.", nil)
 			}
 
 			var drawn []string
 
-			if stack[len(stack)-1][0] == 'p' {
+			if stack[len(stack)-1][0] == 'p' && player.Drawable {
 				// Drawing 2 * n cards
 				for i := 1; i > 0; i++ {
 					for j := 0; j < 2; j++ {
@@ -692,7 +692,7 @@ func main() {
 						break
 					}
 				}
-			} else if stack[len(stack)-1][0] == 'j' {
+			} else if stack[len(stack)-1][0] == 'j' && player.Drawable {
 				// Drawing 4 * n cards
 				for i := 1; i > 0; i++ {
 					for j := 0; j < 4; j++ {
@@ -751,6 +751,9 @@ func main() {
 			for i := 0; i < len(players); i++ {
 				if players[i].Name == user.GetString("name") {
 					players[i].Cards = len(cards)
+					if player.Stacking {
+						players[i].Stacking = false
+					}
 
 					if rules.Unlimited {
 						for j := 0; j < len(drawn); j++ {
@@ -870,63 +873,78 @@ func main() {
 			}
 			card := cards[index]
 
-			// Checking if previous card is placeholder and removing
-			if stack[len(stack)-1][0] == 'n' {
-				stack = cards[:len(stack)-1]
-			}
-
-			var drawable bool
+			// Retrieving player status
+			var player Player
 			for i := 0; i < len(players); i++ {
 				if players[i].Name == user.GetString("name") {
-					drawable = players[i].Drawable
+					player = players[i]
 				}
 			}
 
-			// Checking if previous card requires draw
-			if stack[len(stack)-1][0] == 'p' && drawable {
-				if stack[len(stack)-1][0] == 'p' && card[0] == 'p' && !rules.Stack2 {
-					return apis.NewBadRequestError("Card cannot be stacked.", nil)
-				}
-				if stack[len(stack)-1][0] == 'p' && card[0] != 'p' {
-					if rules.Stack2 {
-						return apis.NewBadRequestError("You must stack an equivalent card or draw.", nil)
-					} else {
-						return apis.NewBadRequestError("You need to draw.", nil)
-					}
-				}
+			// Check if currently swapping
+			if player.Swapping {
+				return apis.NewBadRequestError("You are currently swapping.", nil)
 			}
-			if stack[len(stack)-1][0] == 'j' && drawable {
-				if stack[len(stack)-1][0] == 'j' && card[0] == 'j' && !rules.Stack4 {
-					return apis.NewBadRequestError("Card cannot be stacked.", nil)
-				}
-				if stack[len(stack)-1][0] == 'j' && card[0] != 'j' {
-					if rules.Stack4 {
-						return apis.NewBadRequestError("You must stack an equivalent card or draw.", nil)
-					} else {
-						return apis.NewBadRequestError("You need to draw.", nil)
+
+			// Check if currently wishing
+			if !player.Drawable && (stack[len(stack)-1][0] == 'w' && stack[len(stack)-1][1] == 'd') && (stack[len(stack)-1][0] == 'w' && stack[len(stack)-1][1] == 'd') {
+				return apis.NewBadRequestError("You are currently wishing.", nil)
+			}
+
+			// Checking if previous card requires draw / stack
+			if player.Stacking {
+				if stack[len(stack)-1][0] == 'p' {
+					if !rules.Stack2 {
+						if card[0] == 'p' {
+							return apis.NewBadRequestError("Stacking is disabled. You need to draw.", nil)
+						} else {
+							return apis.NewBadRequestError("You need to draw.", nil)
+						}
 					}
+					if card[0] != 'p' {
+						return apis.NewBadRequestError("You must stack an equivalent card or draw.", nil)
+					}
+				} else if stack[len(stack)-1][0] == 'j' && player.Stacking {
+					if !rules.Stack4 {
+						if card[0] == 'j' {
+							return apis.NewBadRequestError("Stacking is disabled. You need to draw.", nil)
+						} else {
+							return apis.NewBadRequestError("You need to draw.", nil)
+						}
+					}
+					if card[0] != 'j' {
+						return apis.NewBadRequestError("You must stack an equivalent card or draw.", nil)
+					}
+				} else {
+					return apis.NewApiError(500, "Invalid stacking state.", err)
 				}
 			}
 
 			// Checking if card is wish or if previous card has matching color
 			if card[0] != 'w' && card[0] != 'j' && stack[len(stack)-1][0] != card[0] && stack[len(stack)-1][1] != card[1] {
-				return apis.NewBadRequestError("Card color not matching.", nil)
+				return apis.NewBadRequestError("Card not matching.", nil)
+			}
+
+			// Applying direction change if needed
+			if card[0] == 'd' {
+				rules.Direction = !rules.Direction
 			}
 
 			// Saving card to arrays and setting player state
 			cards = append(cards[:index], cards[index+1:]...)
 			stack = append(stack, card)
+			player.Cards = len(cards)
+			if len(cards) > 1 {
+				player.Called = false
+			}
+			if card[0] == '7' && rules.Swap {
+				player.Swapping = true
+			}
+
+			// Saving player to array
 			for i := 0; i < len(players); i++ {
 				if players[i].Name == user.GetString("name") {
-					players[i].Cards = len(cards)
-					players[i].Drawable = false
-					if len(cards) > 1 {
-						players[i].Called = false
-					}
-					if card[0] == '7' && rules.Swap {
-						players[i].Swapping = true
-					}
-					break
+					players[i] = player
 				}
 			}
 
@@ -936,13 +954,21 @@ func main() {
 				if next < 0 {
 					return apis.NewApiError(500, "Couldn't evaluate next player.", err)
 				}
+
+				// Skipping player if block played
 				if card[0] == 'b' {
 					next = nextPlayer(players[next].Name, players, rules)
 					if next < 0 {
 						return apis.NewApiError(500, "Couldn't evaluate next player.", err)
 					}
 				}
+
+				// Applying traits for next player
 				players[next].Drawable = true
+				if card[0] == 'p' {
+					players[next].Stacking = true
+				}
+
 				game.Set("live", players[next].Name)
 			}
 
@@ -984,8 +1010,14 @@ func main() {
 				return apis.NewApiError(500, "Couldn't get user cards update.", err)
 			}
 
+			rulesUpdate, err := json.Marshal(rules)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get user rules update.", err)
+			}
+
 			game.Set("players", playersUpdate)
 			game.Set("stack", stackUpdate)
+			game.Set("rules", rulesUpdate)
 			user.Set("hand", cardsUpdate)
 
 			err = app.Dao().SaveRecord(game)
@@ -1050,45 +1082,69 @@ func main() {
 			}
 			card := cards[index]
 
-			// Checking if previous card is placeholder and removing
-			if stack[len(stack)-1][0] == 'n' {
-				stack = cards[:len(stack)-1]
+			// Retrieving player status
+			var player Player
+			for i := 0; i < len(players); i++ {
+				if players[i].Name == user.GetString("name") {
+					player = players[i]
+				}
 			}
 
 			// Checking if card is wish or if previous card has matching color
-			if ((card[0] == 'j' || card[0] == 'w') && card[0] != stack[len(stack)-1][0]) && card != stack[len(stack)-1] {
-				return apis.NewBadRequestError("Cards not matching.", nil)
+			if card[0] != 'w' && card[0] != 'j' && stack[len(stack)-1][0] != card[0] && stack[len(stack)-1][1] != card[1] {
+				return apis.NewBadRequestError("Card not matching.", nil)
+			}
+
+			// Applying direction change if needed
+			if card[0] == 'd' {
+				rules.Direction = !rules.Direction
 			}
 
 			// Saving card to arrays and setting player state
 			cards = append(cards[:index], cards[index+1:]...)
 			stack = append(stack, card)
+			player.Cards = len(cards)
+			if len(cards) > 1 {
+				player.Called = false
+			}
+			if card[0] == '7' && rules.Swap {
+				player.Swapping = true
+			}
+
+			// Saving player to array and clean up last player
 			for i := 0; i < len(players); i++ {
 				if players[i].Name == user.GetString("name") {
-					players[i].Cards = len(cards)
-					if len(cards) > 1 {
-						players[i].Called = false
-					}
-					if card[0] == '7' && rules.Swap {
-						players[i].Swapping = true
-					}
-					break
+					players[i] = player
+				}
+
+				if players[i].Name == game.GetString("live") {
+					players[i].Drawable = false
+					players[i].Stacking = false
 				}
 			}
 
 			// If player action isn't pending, assigning next player
-			if card[0] != 'j' && card[0] != 'w' && (card[0] != '7' || !rules.Swap) {
+			if card[0] != 'j' && card[0] != 'w' && (card[0] != '7' && !rules.Swap) {
 				next := nextPlayer(user.GetString("name"), players, rules)
 				if next < 0 {
 					return apis.NewApiError(500, "Couldn't evaluate next player.", err)
 				}
+
+				// Skipping player if block played
 				if card[0] == 'b' {
 					next = nextPlayer(players[next].Name, players, rules)
 					if next < 0 {
 						return apis.NewApiError(500, "Couldn't evaluate next player.", err)
 					}
 				}
+
+				// Applying traits for next player
 				players[next].Drawable = true
+				if card[0] == 'p' {
+					players[next].Stacking = true
+				}
+
+				// Setting next player
 				game.Set("live", players[next].Name)
 			}
 
@@ -1130,9 +1186,15 @@ func main() {
 				return apis.NewApiError(500, "Couldn't get user cards update.", err)
 			}
 
+			rulesUpdate, err := json.Marshal(rules)
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't get user rules update.", err)
+			}
+
 			game.Set("players", playersUpdate)
 			game.Set("stack", stackUpdate)
 			user.Set("hand", cardsUpdate)
+			user.Set("rules", rulesUpdate)
 
 			err = app.Dao().SaveRecord(game)
 			if err != nil {
@@ -1299,7 +1361,12 @@ func main() {
 			if next < 0 {
 				return apis.NewApiError(500, "Couldn't evaluate next player.", err)
 			}
+
+			// Applying traits for next player
 			players[next].Drawable = true
+			if stack[len(stack)-1][0] == 'j' {
+				players[next].Stacking = true
+			}
 			game.Set("live", players[next].Name)
 
 			// Update state
@@ -1748,7 +1815,7 @@ func nextPlayer(name string, players []Player, rules Rules) int {
 			}
 		}
 	} else {
-		for i := len(players); i >= 0; i-- {
+		for i := len(players) - 1; i >= 0; i-- {
 			if players[i].Name == name {
 				if i == 0 {
 					return len(players) - 1
