@@ -498,6 +498,7 @@ export default class Game extends Component<GameProps, GameState> {
   }
 
   Table() {
+    /* TODO: To state / onUpdate + current player */
     const self = this.state.game?.players.find(
       (item) => item.name === this.state.player?.name
     );
@@ -517,32 +518,45 @@ export default class Game extends Component<GameProps, GameState> {
     return (
       <>
         {/* Own card row */}
-        <div className="fixed h-52 w-[60%] inset-x-[20%] bottom-[1%] flex gap-x-3 justify-center items-end">
+        <div className="fixed h-52 w-[60%] inset-x-[20%] bottom-[1.8%] flex gap-x-3 justify-center items-end">
           {this.state.player?.hand
             .map(codeToType)
             .map((card: CardType, index) => {
+              const variation =
+                -((this.state.player!.hand.length - 1) / 2 - index) /
+                this.state.player!.hand.length;
+
               return (
                 <div
-                  key={typeToCode(card) + index}
                   style={{
+                    transform:
+                      "rotate(" +
+                      variation * 15 +
+                      "deg) translate(0," +
+                      Math.abs(variation) * 2 +
+                      "rem)",
                     zIndex: this.state.player!.hand.length - index,
-                    maxWidth: (1 / this.state.player!.hand.length) * 40 + "rem",
-                  }}
-                  className="cursor-pointer hover:-translate-y-3 hover:scale-110 duration-200 w-fit ease-out"
-                  onClick={async () => {
-                    const play = await gamePlay(typeToCode(card));
-                    if (play["code"] !== 200) {
-                      showNotification({
-                        autoClose: API_NOTIFICATION_GAME_TIMEOUT,
-                        message:
-                          play["message"] ?? "An unknown error occurred.",
-                        color: "red",
-                        icon: <PlayArrow />,
-                      });
-                    }
+                    maxWidth: (1 / this.state.player!.hand.length) * 38 + "rem",
                   }}
                 >
-                  <CardFront card={card} />
+                  <div
+                    key={typeToCode(card) + index}
+                    className="cursor-pointer hover:-translate-y-3 hover:scale-110 duration-200 w-fit ease-out"
+                    onClick={async () => {
+                      const play = await gamePlay(typeToCode(card));
+                      if (play["code"] !== 200) {
+                        showNotification({
+                          autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                          message:
+                            play["message"] ?? "An unknown error occurred.",
+                          color: "red",
+                          icon: <PlayArrow />,
+                        });
+                      }
+                    }}
+                  >
+                    <CardFront card={card} />
+                  </div>
                 </div>
               );
             })}
