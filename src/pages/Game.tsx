@@ -415,7 +415,8 @@ export default class Game extends Component<GameProps, GameState> {
           {this.state.game && this.state.player ? (
             <Button
               disabled={
-                this.state.game.players[0].name !== this.state.player.name
+                this.state.game.players[0].name !== this.state.player.name ||
+                this.state.game.players.length <= 1
               }
               uppercase
               className={
@@ -772,7 +773,11 @@ export default class Game extends Component<GameProps, GameState> {
 
         {/* Call button */}
         <div className="fixed flex h-[12.5%] right-[80%] left-[10%] bottom-[6%] justify-center items-center">
-          {self && self.cards === 2 && !self.called ? (
+          {self &&
+          self.cards === 2 &&
+          !self.called &&
+          this.state.game &&
+          this.state.game.live === self.name ? (
             <Button
               uppercase
               className={
@@ -830,7 +835,7 @@ export default class Game extends Component<GameProps, GameState> {
         {/* Play stack */}
         <div className="fixed flex inset-y-1/2 right-[37.5%] left-[50%] inset-y-[42%] flex justify-center items-center">
           <AppearCard
-            key={this.state.game!.stack.length}
+            key={this.state.game!.stack.join(",")}
             card={codeToType(
               this.state.game!.stack[this.state.game!.stack.length - 1]
             )}
@@ -842,6 +847,7 @@ export default class Game extends Component<GameProps, GameState> {
         this.state.player!.name === this.state.game!.live &&
         this.state.game!.stack.pop()?.charAt(1) === CardColor.DARK ? (
           <Modal
+            key={this.state.game!.stack.join(",")}
             opened={true}
             onClose={() => {}}
             closeOnClickOutside={false}
