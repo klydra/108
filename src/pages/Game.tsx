@@ -1,7 +1,7 @@
 import React, { Component, useEffect, useState } from "react";
-import CardFront from "../components/card/CardFront";
+import CardFront from "../components/card/front/CardFront";
 import { CardColor, CardType, codeToType, typeToCode } from "../models/Card";
-import CardBack from "../components/card/CardBack";
+import CardBack from "../components/card/back/CardBack";
 import PocketBase from "pocketbase";
 import {
   API_HOST,

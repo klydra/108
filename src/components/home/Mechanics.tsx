@@ -1,5 +1,5 @@
-import CardBack from "../card/CardBack";
-import CardFront from "../card/CardFront";
+import CardBack from "../card/back/CardBack";
+import CardFront from "../card/front/CardFront";
 import { CardColor, CardFace } from "../../models/Card";
 import { Column, Entry, Heading, Row } from "./Layout";
 import React from "react";

@@ -98,3 +98,18 @@ export function codeToType(card: string) {
 export function typeToCode(card: CardType) {
   return card.face + card.color;
 }
+
+export function colorToString(color: CardColor) {
+  switch (color) {
+    case CardColor.YELLOW:
+      return "yellow";
+    case CardColor.GREEN:
+      return "green";
+    case CardColor.BLUE:
+      return "blue";
+    case CardColor.PURPLE:
+      return "purple";
+    case CardColor.DARK:
+      return "dark";
+  }
+}
