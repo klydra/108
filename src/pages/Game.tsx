@@ -415,7 +415,8 @@ export default class Game extends Component<GameProps, GameState> {
           {this.state.game && this.state.player ? (
             <Button
               disabled={
-                this.state.game.players[0].name !== this.state.player.name
+                this.state.game.players[0].name !== this.state.player.name ||
+                this.state.game.players.length > 1
               }
               uppercase
               className={
