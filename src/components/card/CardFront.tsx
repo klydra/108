@@ -1,5 +1,10 @@
 import React from "react";
-import { CardColor, CardFace, CardIconWeight, CardType } from "../models/Card";
+import {
+  CardColor,
+  CardFace,
+  CardIconWeight,
+  CardType,
+} from "../../models/Card";
 
 export default function CardFront(props: { card: CardType }) {
   switch (props.card.face) {

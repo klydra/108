@@ -2,9 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
-	"github.com/oklog/ulid/v2"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
@@ -869,7 +867,7 @@ func main() {
 				}
 			}
 			if index < 0 {
-				return apis.NewBadRequestError("Card not in player possession.", nil)
+				return apis.NewBadRequestError("card not in player possession.", nil)
 			}
 			card := cards[index]
 
@@ -922,7 +920,7 @@ func main() {
 
 			// Checking if card is wish or if previous card has matching color
 			if card[0] != 'w' && card[0] != 'j' && stack[len(stack)-1][0] != card[0] && stack[len(stack)-1][1] != card[1] {
-				return apis.NewBadRequestError("Card not matching.", nil)
+				return apis.NewBadRequestError("card not matching.", nil)
 			}
 
 			// Applying direction change if needed
@@ -1077,7 +1075,7 @@ func main() {
 				}
 			}
 			if index < 0 {
-				return apis.NewBadRequestError("Card not in player possession.", nil)
+				return apis.NewBadRequestError("card not in player possession.", nil)
 			}
 			card := cards[index]
 
@@ -1091,7 +1089,7 @@ func main() {
 
 			// Checking if card is wish or if previous card has matching color
 			if card[0] != 'w' && card[0] != 'j' && stack[len(stack)-1][0] != card[0] && stack[len(stack)-1][1] != card[1] {
-				return apis.NewBadRequestError("Card not matching.", nil)
+				return apis.NewBadRequestError("card not matching.", nil)
 			}
 
 			// Applying direction change if needed
