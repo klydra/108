@@ -14,17 +14,27 @@ import {
   gameWish,
   joinGame,
   sessionOngoing,
+  sessionRules,
   sessionStart,
 } from "../api/API";
 import { NavigateFunction } from "react-router";
 import { showNotification } from "@mantine/notifications";
 import {
+  CompareArrows,
+  EmojiEvents,
+  Filter9Plus,
+  Gavel,
+  Layers,
   PlayArrow,
+  Reorder,
   SettingsOutlined,
+  Shuffle,
+  Speed,
+  Star,
   SwapHoriz,
   Wifi,
 } from "@mui/icons-material";
-import { Button, Modal } from "@mantine/core";
+import { Button, Modal, NumberInput, Switch } from "@mantine/core";
 import { createAvatar } from "@dicebear/core";
 import { loreleiNeutral } from "@dicebear/collection";
 
@@ -221,45 +231,268 @@ export default class Game extends Component<GameProps, GameState> {
           <div className="bg-table-background h-full w-full rounded-2xl drop-shadow-[0_5px_5px_rgba(255,255,255,0.25)] shadow-card-yellow"></div>
         </div>
 
-        {this.state.game?.live ? this.Table() : this.Settings()}
+        {this.state.game?.live
+          ? this.Table()
+          : this.state.game
+          ? this.Settings()
+          : null}
       </>
     );
   }
 
   Settings() {
     return (
-      <div className="fixed h-full w-full flex justify-center items-center">
-        <Button
-          uppercase
-          className={
-            "h-36 w-36 rounded-[10rem] text-card-accent hover:bg-background bg-background"
-          }
-          onClick={async () => {
-            const start = await sessionStart();
-            if (start["code"] !== 200) {
-              showNotification({
-                autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
-                message: start["message"],
-                color: "red",
-                icon: <SettingsOutlined />,
-              });
-              return;
-            }
+      <div className="px-[5%] py-[8%] h-[100vh] w-[100vw] flex flex-row fixed justify-evenly items-center gap-x-[1.5rem]">
+        <div className="h-full max-h-full max-w-[20rem] flex flex-grow flex-col flex-wrap justify-center items-center gap-4 overflow-hidden">
+          {this.state.game
+            ? this.state.game.players.map((player) => {
+                const avatar = createAvatar(loreleiNeutral, {
+                  seed: player.name,
+                });
 
-            showNotification({
-              autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
-              message: "Starting game...",
-              color: "green",
-              icon: <SettingsOutlined />,
-            });
-          }}
-        >
-          <div className="w-full h-full flex p-2 justify-center items-center">
-            <PlayArrow style={{ width: "100%", height: "100%" }} />
-          </div>
-        </Button>
+                return (
+                  <div className="h-16 w-16 rounded-2xl overflow-hidden">
+                    <div
+                      dangerouslySetInnerHTML={{ __html: avatar.toString() }}
+                    ></div>
+                  </div>
+                );
+              })
+            : null}
+        </div>
+        <div className="max-w-2xl h-full py-8 flex flex-col flex-grow justify-center items-center gap-y-4 overflow-y-auto">
+          <this.Rule
+            icon={<Reorder className="scale-[200%]" />}
+            title="deck"
+            text="number of cards that are distributed to everyone"
+          >
+            <NumberInput
+              value={this.state.game!.rules.count}
+              defaultValue={7}
+              placeholder="7"
+              minLength={1}
+              maxLength={2}
+              onChange={async (count) => {
+                if (count && count >= 5 && count <= 12)
+                  await this.rules({
+                    ...this.state.game!.rules,
+                    count: count ?? 7,
+                  });
+              }}
+            />
+          </this.Rule>
+          <this.Rule
+            icon={<Shuffle className="scale-[200%]" />}
+            title="random cards"
+            text="order cards …..gsfdagfgsafdgas fgdfasgfdgasfg"
+          >
+            <Switch
+              color="gray"
+              checked={this.state.game!.rules.ordered}
+              onClick={() =>
+                this.rules({
+                  ...this.state.game!.rules,
+                  ordered: !this.state.game!.rules.ordered,
+                })
+              }
+            />
+          </this.Rule>
+          <this.Rule
+            icon={<EmojiEvents className="scale-[200%]" />}
+            title="short match"
+            text="the game ends when the first player plays all his cards"
+          >
+            <Switch
+              color="gray"
+              checked={this.state.game!.rules.king}
+              onClick={() =>
+                this.rules({
+                  ...this.state.game!.rules,
+                  king: !this.state.game!.rules.king,
+                })
+              }
+            />
+          </this.Rule>
+          <this.Rule
+            icon={<Star className="scale-[200%]" />}
+            title="to good to go"
+            text="if you draw a matching card you can play it or hold it"
+          >
+            <Switch
+              color="gray"
+              checked={this.state.game!.rules.hold}
+              onClick={() =>
+                this.rules({
+                  ...this.state.game!.rules,
+                  hold: !this.state.game!.rules.hold,
+                })
+              }
+            />
+          </this.Rule>
+          <this.Rule
+            icon={<Filter9Plus className="scale-[200%]" />}
+            title="million cards"
+            text="you can draw as long cards as you didn´t got a matching one"
+          >
+            <Switch
+              color="gray"
+              checked={this.state.game!.rules.unlimited}
+              onClick={() =>
+                this.rules({
+                  ...this.state.game!.rules,
+                  unlimited: !this.state.game!.rules.unlimited,
+                })
+              }
+            />
+          </this.Rule>
+          <this.Rule
+            icon={<Layers className="scale-[200%]" />}
+            title="2 stacks"
+            text="Draw-2-cards are stackable, that the next player needs to draw 2, 3, 4, … times as much cards."
+          >
+            <Switch
+              color="gray"
+              checked={this.state.game!.rules.stack2}
+              onClick={() =>
+                this.rules({
+                  ...this.state.game!.rules,
+                  stack2: !this.state.game!.rules.stack2,
+                })
+              }
+            />
+          </this.Rule>
+          <this.Rule
+            icon={<Layers className="scale-[200%]" />}
+            title="4 stacks"
+            text="Draw-4-cards and draw-4-cards are stackable, that the next player needs to draw 2, 3, 4, … times as much cards."
+          >
+            <Switch
+              color="gray"
+              checked={this.state.game!.rules.stack4}
+              onClick={() =>
+                this.rules({
+                  ...this.state.game!.rules,
+                  stack4: !this.state.game!.rules.stack4,
+                })
+              }
+            />
+          </this.Rule>
+          <this.Rule
+            icon={<CompareArrows className="scale-[200%]" />}
+            title="magic 7"
+            text="If a 7 is played, the player can choose one opponent to switch cards with."
+          >
+            <Switch
+              color="gray"
+              checked={this.state.game!.rules.swap}
+              onClick={() =>
+                this.rules({
+                  ...this.state.game!.rules,
+                  swap: !this.state.game!.rules.swap,
+                })
+              }
+            />
+          </this.Rule>
+          <this.Rule
+            icon={<Speed className="scale-[200%]" />}
+            title="fast, faster, next one"
+            text="If a card is played, and a player has the identical card the player can play the identical card and from him the game continues."
+          >
+            <Switch
+              color="gray"
+              checked={this.state.game!.rules.throw}
+              onClick={() =>
+                this.rules({
+                  ...this.state.game!.rules,
+                  throw: !this.state.game!.rules.throw,
+                })
+              }
+            />
+          </this.Rule>
+        </div>
+        <div className="h-full max-h-full max-w-[12rem] flex flex-col flex-grow flex-wrap justify-center items-center gap-4">
+          {this.state.game && this.state.player ? (
+            <Button
+              disabled={
+                this.state.game.players[0].name !== this.state.player.name
+              }
+              uppercase
+              className={
+                "h-24 w-24 rounded-[10rem] text-card-accent hover:bg-background bg-background"
+              }
+              onClick={async () => {
+                const start = await sessionStart();
+                if (start["code"] !== 200) {
+                  showNotification({
+                    autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
+                    message: start["message"],
+                    color: "red",
+                    icon: <SettingsOutlined />,
+                  });
+                  return;
+                }
+
+                showNotification({
+                  autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
+                  message: "Starting game...",
+                  color: "green",
+                  icon: <SettingsOutlined />,
+                });
+              }}
+            >
+              <div className="w-full h-full flex p-1 justify-center items-center">
+                <PlayArrow style={{ width: "100%", height: "100%" }} />
+              </div>
+            </Button>
+          ) : null}
+        </div>
       </div>
     );
+  }
+
+  Rule(props: {
+    icon: React.ReactNode;
+    title: string;
+    text: string;
+    children: React.ReactNode;
+  }) {
+    return (
+      <div className="flex w-full">
+        <div className="w-1/6 flex justify-center items-center">
+          {props.icon}
+        </div>
+        <div className="w-2/3 text-[1.5rem] text-card-accent font-semibold tracking-[.01em] font-default w-[30rem] h-[5rem] flex justify-center items-start flex-col">
+          <p>{props.title}</p>
+          <p className="text-[0.8rem] max-w-[26rem] text-card-accent font-light tracking-[.01em] font-default">
+            {props.text}
+          </p>
+        </div>
+        <div className="w-1/6 max-w-[3.5rem] w-[3.5rem] flex justify-center items-center">
+          {props.children}
+        </div>
+      </div>
+    );
+  }
+
+  async rules(rules: GameRules) {
+    if (this.state.game!.players[0].name !== this.state.player!.name) return;
+
+    const set = await sessionRules(JSON.stringify(rules));
+    if (set["code"] !== 200) {
+      showNotification({
+        autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+        message: set["message"] ?? "An unknown error occurred.",
+        color: "red",
+        icon: <Gavel />,
+      });
+    } else {
+      showNotification({
+        autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+        message: "Rules saved.",
+        color: "violet",
+        icon: <Gavel />,
+      });
+    }
   }
 
   Table() {
