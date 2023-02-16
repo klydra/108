@@ -8,6 +8,7 @@ import {
   API_NOTIFICATION_GAME_TIMEOUT,
   API_NOTIFICATION_NOTICE_TIMEOUT,
   ensureRegistered,
+  gameCall,
   gameDraw,
   gamePlay,
   gameSwitch,
@@ -545,7 +546,7 @@ export default class Game extends Component<GameProps, GameState> {
               );
             })}
           {avatars ? (
-            <div className="h-24 w-24 ml-8">
+            <div className="h-24 w-24 ml-8 drop-shadow-2xl">
               <div
                 className="h-24 w-24 rounded-xl overflow-hidden absolute z-10"
                 dangerouslySetInnerHTML={{
@@ -570,7 +571,7 @@ export default class Game extends Component<GameProps, GameState> {
           {enemies && (enemies.length === 2 || enemies.length === 3) ? (
             <>
               {avatars ? (
-                <div className="w-full mb-6 h-20 flex justify-end">
+                <div className="w-full mb-6 h-20 flex justify-end drop-shadow-2xl">
                   <div
                     className="h-20 w-20"
                     style={{
@@ -649,7 +650,7 @@ export default class Game extends Component<GameProps, GameState> {
                 );
               })}
               {avatars ? (
-                <div className="w-full h-20 mt-16 flex justify-end">
+                <div className="w-full h-20 mt-16 flex justify-end drop-shadow-2xl">
                   {/* TODO */}
                   <div
                     className="h-20 w-20 rotate-180 rounded-xl"
@@ -704,7 +705,7 @@ export default class Game extends Component<GameProps, GameState> {
             <>
               {avatars ? (
                 <div
-                  className="h-20 w-20 mr-6"
+                  className="h-20 w-20 mr-6 drop-shadow-2xl"
                   style={{
                     cursor: self?.swapping ? "pointer" : "",
                   }}
@@ -770,10 +771,42 @@ export default class Game extends Component<GameProps, GameState> {
         </div>
 
         {/* Call button */}
-        <div className="fixed flex h-[12.5%] left-[80%] right-[10%] bottom-[6%]"></div>
+        <div className="fixed flex h-[12.5%] right-[80%] left-[10%] bottom-[6%] justify-center items-center">
+          {self && self.cards === 2 && !self.called ? (
+            <Button
+              uppercase
+              className={
+                "h-28 w-28 rounded-[10rem] text-card-accent ease-out duration-100 hover:scale-110 hover:bg-contrast bg-contrast shadow-background drop-shadow-2xl"
+              }
+              onClick={async () => {
+                const call = await gameCall();
+                if (call["code"] !== 200) {
+                  showNotification({
+                    autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
+                    message: call["message"],
+                    color: "red",
+                    icon: <SettingsOutlined />,
+                  });
+                  return;
+                }
+
+                showNotification({
+                  autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
+                  message: "Called ONE!",
+                  color: "green",
+                  icon: <SettingsOutlined />,
+                });
+              }}
+            >
+              <div className="w-full h-full flex justify-center items-center text-[1.6rem] text-background font-default font-semibold">
+                ONE
+              </div>
+            </Button>
+          ) : null}
+        </div>
 
         {/* Draw stack */}
-        <div className="fixed flex inset-y-1/2 left-[37.5%] right-[50%] inset-y-[42%] flex justify-center items-center">
+        <div className="fixed flex inset-y-1/2 left-[37.5%] right-[50%] inset-y-[42%] justify-center items-center">
           <div
             key={this.state.animation.disappear.toString()}
             className="cursor-pointer h-full absolute z-10"
@@ -802,16 +835,6 @@ export default class Game extends Component<GameProps, GameState> {
               this.state.game!.stack[this.state.game!.stack.length - 1]
             )}
           />
-          {/*<div
-            key={this.state.animation.appear.toString()}
-            className="scale-95 absolute"
-          >
-            <CardFront
-              card={codeToType(
-                this.state.game!.stack[this.state.game!.stack.length - 2]
-              )}
-            />
-          </div>*/}
         </div>
 
         {!!this.state.player &&
