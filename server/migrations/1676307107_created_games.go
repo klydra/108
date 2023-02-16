@@ -31,15 +31,11 @@ func init() {
 				{
 					"system": false,
 					"id": "xv694u2s",
-					"name": "live",
-					"type": "text",
-					"required": false,
+					"name": "global",
+					"type": "json",
+					"required": true,
 					"unique": false,
-					"options": {
-						"min": 26,
-						"max": 26,
-						"pattern": "^[A-Z0-9]+$"
-					}
+					"options": {}
 				},
 				{
 					"system": false,

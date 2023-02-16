@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { CardColor } from "../models/Card";
 import { NavigateFunction } from "react-router";
-import Header from "../components/home/Header";
-import Play from "../components/home/Play";
-import Mechanics from "../components/home/Mechanics";
-import Rules from "../components/home/Rules";
-import Contact from "../components/home/Contact";
+import HomeHeader from "../components/home/HomeHeader";
+import HomePlay from "../components/home/HomePlay";
+import HomeMechanics from "../components/home/HomeMechanics";
+import HomeRules from "../components/home/HomeRules";
+import HomeContact from "../components/home/HomeContact";
 
 export default function Home(props: { navigate: NavigateFunction }) {
   const [theme, _] = useState(
@@ -20,13 +20,13 @@ export default function Home(props: { navigate: NavigateFunction }) {
     <>
       <div className="bg-background w-full flex justify-center">
         <div className="w-full max-w-[120rem]">
-          <Header theme={themeName} setModal={setModal} />
-          <Mechanics theme={themeColor} />
-          <Rules theme={themeColor} />
-          <Contact />
+          <HomeHeader theme={themeName} setModal={setModal} />
+          <HomeMechanics theme={themeColor} />
+          <HomeRules theme={themeColor} />
+          <HomeContact />
         </div>
       </div>
-      <Play
+      <HomePlay
         modal={modal}
         setModal={setModal}
         theme={themeName}

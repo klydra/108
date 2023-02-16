@@ -1,10 +1,10 @@
 import React from "react";
-import { Column, Entry, Heading, Row } from "./Layout";
+import { Column, Entry, Heading, Row } from "./HomeLayout";
 import CardBack from "../card/back/CardBack";
 import CardFront from "../card/front/CardFront";
 import { CardColor, CardFace } from "../../models/Card";
 
-export default function Rules(props: { theme: CardColor }) {
+export default function HomeRules(props: { theme: CardColor }) {
   return (
     <>
       <Heading title="custom rules" />

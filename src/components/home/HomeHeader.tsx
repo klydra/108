@@ -1,16 +1,19 @@
 import { Button } from "@mantine/core";
 import { ArrowCircleDown, PlayArrow } from "@mui/icons-material";
 import React from "react";
-import Icon from "./Icon";
+import HomeIcon from "./HomeIcon";
 
-export default function Header(props: { theme: string; setModal: Function }) {
+export default function HomeHeader(props: {
+  theme: string;
+  setModal: Function;
+}) {
   return (
     <div className="w-full h-[100vh] flex flex-col justify-evenly items-center">
       <div className="w-full h-full flex flex-col justify-evenly items-center gap-y-16">
         <div className="mt-12 px-12 w-full flex flex-col justify-center items-center gap-y-16">
           <div className="flex justify-center items-end gap-x-12">
             <div className="h-[150%]">
-              <Icon />
+              <HomeIcon />
             </div>
             <b className="text-card-accent text-[6rem] font-default">
               108.cards

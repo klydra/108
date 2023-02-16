@@ -1,7 +1,7 @@
 import React from "react";
-import { Column, Heading, Row } from "./Layout";
+import { Column, Heading, Row } from "./HomeLayout";
 
-export default function Contact() {
+export default function HomeContact() {
   return (
     <>
       <Heading title="contact" />

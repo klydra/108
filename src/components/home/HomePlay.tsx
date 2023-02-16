@@ -10,7 +10,7 @@ import React, { ChangeEvent, useState } from "react";
 import { showNotification } from "@mantine/notifications";
 import { NavigateFunction } from "react-router";
 
-export default function Play(props: {
+export default function HomePlay(props: {
   modal: boolean;
   setModal: Function;
   theme: string;

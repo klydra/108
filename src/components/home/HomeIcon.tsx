@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function Icon() {
+export default function HomeIcon() {
   return (
     <svg className="h-full" viewBox="0 0 1960 1201.05799">
       <g>

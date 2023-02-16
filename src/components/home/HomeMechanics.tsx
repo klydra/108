@@ -1,10 +1,10 @@
 import CardBack from "../card/back/CardBack";
 import CardFront from "../card/front/CardFront";
 import { CardColor, CardFace } from "../../models/Card";
-import { Column, Entry, Heading, Row } from "./Layout";
+import { Column, Entry, Heading, Row } from "./HomeLayout";
 import React from "react";
 
-export default function Mechanics(props: { theme: CardColor }) {
+export default function HomeMechanics(props: { theme: CardColor }) {
   return (
     <>
       <Heading title="mechanics" />
