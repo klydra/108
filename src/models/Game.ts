@@ -1,7 +1,7 @@
 type GameType = {
   players: GamePlayer[];
   live: string;
-  global: GameGlobal;
+  globals: GameGlobals;
   rules: GameRules;
   stack: string[];
 };
@@ -12,7 +12,7 @@ type GamePlayer = {
   called: boolean;
 };
 
-type GameGlobal = {
+type GameGlobals = {
   live: string;
   direction: boolean;
   stacking: boolean;

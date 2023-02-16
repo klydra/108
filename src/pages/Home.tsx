@@ -24,6 +24,9 @@ export default function Home(props: { navigate: NavigateFunction }) {
           <HomeMechanics theme={themeColor} />
           <HomeRules theme={themeColor} />
           <HomeContact />
+          <div className="flex justify-center items-center h-[1rem] text-card-accent font-semibold tracking-[.01em] font-default pt-[3rem] pb-[5rem]">
+            Copyright 2023, Jan Klinge
+          </div>
         </div>
       </div>
       <HomePlay

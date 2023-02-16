@@ -5,7 +5,7 @@ export type SessionType = {
   me: SessionMe;
   enemies: SessionEnemy[];
   order: string[];
-  global: GameGlobal;
+  globals: GameGlobals;
   rules: GameRules;
   stack: string[];
 };
@@ -54,7 +54,7 @@ export function sessionConstruct(player: PlayerType, game: GameType) {
       };
     }),
     order: game.players.map((item) => item.name),
-    global: game.global,
+    globals: game.globals,
     rules: game.rules,
     stack: game.stack,
   };
@@ -67,14 +67,14 @@ export function sessionCurrent(session: SessionType) {
 
 export function sessionNext(session: SessionType) {
   const current = session.order.findIndex(
-    (item) => item === session.global.live
+    (item) => item === session.globals.live
   );
   return session.order[current !== session.order.length - 1 ? current + 1 : 0];
 }
 
 export function sessionLast(session: SessionType) {
   const current = session.order.findIndex(
-    (item) => item === session.global.live
+    (item) => item === session.globals.live
   );
   return session.order[current !== 0 ? current - 1 : session.order.length - 1];
 }
@@ -101,7 +101,7 @@ export function patchGame(game: GameType, session: SessionType) {
       };
     }),
     order: game.players.map((item) => item.name),
-    global: game.global,
+    globals: game.globals,
     rules: game.rules,
     stack: game.stack,
   };

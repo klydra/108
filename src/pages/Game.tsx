@@ -185,13 +185,16 @@ export default class Game extends Component<GameProps, GameState> {
   }
 
   render() {
+    console.log(this.state.session);
+    console.log(this.state.animator);
+
     return (
       <>
         <div className="absolute flex justify-center items-center bg-background h-[100vh] w-[100vw] p-[5%]">
           <div className="bg-table-background h-full w-full rounded-2xl drop-shadow-[0_5px_5px_rgba(255,255,255,0.25)] shadow-card-yellow"></div>
         </div>
 
-        {!this.state.session ? null : !!this.state.session.global.live ? (
+        {!this.state.session ? null : this.state.session.globals.live !== "" ? (
           <>
             <SessionRows session={this.state.session!} />
             <SessionCall session={this.state.session!} />

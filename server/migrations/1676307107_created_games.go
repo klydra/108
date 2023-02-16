@@ -31,7 +31,7 @@ func init() {
 				{
 					"system": false,
 					"id": "xv694u2s",
-					"name": "global",
+					"name": "globals",
 					"type": "json",
 					"required": true,
 					"unique": false,

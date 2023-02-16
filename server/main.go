@@ -2,19 +2,18 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
+	"github.com/oklog/ulid/v2"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	"log"
-	"math/rand"
+	_ "main/migrations"
 	"net/http"
 	"os"
-	"time"
-
-	_ "main/migrations"
 )
 
 type Status struct {
@@ -36,11 +35,12 @@ type Player struct {
 	Called bool   `json:"called" xml:"called"`
 }
 
-type Global struct {
-	Direction bool `json:"direction" xml:"direction"` // Direction of turns of players (true is clockwise)
-	Stacking  bool `json:"stacking" xml:"stacking"`
-	Swapping  bool `json:"swapping" xml:"swapping"`
-	Drawable  bool `json:"drawable" xml:"drawable"`
+type Globals struct {
+	Live      string `json:"live" xml:"live"`
+	Direction bool   `json:"direction" xml:"direction"` // Direction of turns of players (true is clockwise)
+	Stacking  bool   `json:"stacking" xml:"stacking"`
+	Swapping  bool   `json:"swapping" xml:"swapping"`
+	Drawable  bool   `json:"drawable" xml:"drawable"`
 }
 
 type Rules struct {
@@ -209,18 +209,26 @@ func main() {
 			}
 
 			players, err := json.Marshal([]Player{{
-				Name:     user.GetString("name"),
-				Cards:    0,
-				Called:   false,
-				Drawable: false,
-				Swapping: false,
+				Name:   user.GetString("name"),
+				Cards:  0,
+				Called: false,
 			}})
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't generate default rules.", err)
+				return apis.NewApiError(500, "Couldn't generate default players.", err)
+			}
+
+			globals, err := json.Marshal([]Globals{{
+				Live:      "",
+				Direction: true,
+				Stacking:  false,
+				Swapping:  false,
+				Drawable:  false,
+			}})
+			if err != nil {
+				return apis.NewApiError(500, "Couldn't generate default globals.", err)
 			}
 
 			rules, err := json.Marshal(Rules{
-				Direction: true,
 				Count:     7,
 				Stack2:    false,
 				Stack4:    false,
@@ -239,6 +247,7 @@ func main() {
 			// Create game record
 			record := models.NewRecord(collection)
 			record.Set("players", players)
+			record.Set("globals", globals)
 			record.Set("rules", rules)
 			record.Set("stack", "[{}]")
 
@@ -287,22 +296,22 @@ func main() {
 
 						// Clean up dead game
 						if len(players) == 1 {
-							game.Set("live", "")
-							players[0].Cards = 0
-							players[0].Drawable = false
-							players[0].Called = false
-							players[0].Swapping = false
-
 							player, err := app.Dao().FindFirstRecordByData("players", "name", players[0].Name)
 							if err != nil {
 								return apis.NewApiError(500, "Couldn't get player for cleanup.", err)
 							}
 
+							player.Set("game", "")
 							player.Set("hand", "[{}]")
 
 							err = app.Dao().SaveRecord(player)
 							if err != nil {
 								return apis.NewApiError(500, "Couldn't update player for cleanup.", err)
+							}
+
+							err = app.Dao().DeleteRecord(game)
+							if err != nil {
+								return apis.NewApiError(500, "Couldn't delete dead game.", err)
 							}
 						}
 
@@ -348,11 +357,9 @@ func main() {
 
 				// Adding player to game
 				updated, err := json.Marshal(append(players, Player{
-					Name:     user.GetString("name"),
-					Cards:    0,
-					Called:   false,
-					Drawable: false,
-					Swapping: false,
+					Name:   user.GetString("name"),
+					Cards:  0,
+					Called: false,
 				}))
 				if err != nil {
 					return apis.NewApiError(500, "Couldn't generate game update request.", err)
@@ -375,7 +382,7 @@ func main() {
 			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
-		e.Router.POST("/session/start", func(c echo.Context) error {
+		/*e.Router.POST("/session/start", func(c echo.Context) error {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
@@ -597,7 +604,7 @@ func main() {
 			}
 
 			return c.JSON(http.StatusOK, Status{Status: "ok"})
-		})
+		})*/
 
 		e.Router.POST("/session/ongoing", func(c echo.Context) error {
 			// Retrieve target user
@@ -618,7 +625,7 @@ func main() {
 			return c.JSON(http.StatusOK, Session{Game: game.Id})
 		})
 
-		e.Router.POST("/game/draw", func(c echo.Context) error {
+		/*e.Router.POST("/game/draw", func(c echo.Context) error {
 			// Retrieve target user
 			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
 			if err != nil {
@@ -1792,7 +1799,7 @@ func main() {
 			}
 
 			return c.JSON(http.StatusOK, Status{Status: "ok"})
-		})
+		})*/
 
 		return nil
 	})
@@ -1812,7 +1819,7 @@ func main() {
 	}
 }
 
-func nextPlayer(name string, players []Player, rules Rules) int {
+/*func nextPlayer(name string, players []Player, rules Rules) int {
 	if rules.Direction {
 		for i := 0; i < len(players); i++ {
 			if players[i].Name == name {
@@ -1844,4 +1851,4 @@ func resetCard(card string) string {
 	}
 
 	return card
-}
+}*/

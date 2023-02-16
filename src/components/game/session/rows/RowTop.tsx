@@ -1,12 +1,16 @@
 import { sessionLast, SessionType } from "../../../../models/Session";
-import { API_NOTIFICATION_GAME_TIMEOUT, gameSwitch } from "../../../../api/API";
+import {
+  API_NOTIFICATION_GAME_TIMEOUT,
+  gameAppeal,
+  gameSwitch,
+} from "../../../../api/API";
 import { showNotification } from "@mantine/notifications";
 import { SwapHoriz } from "@mui/icons-material";
 import React from "react";
 import { EnemyCard } from "../SessionRows";
 
 export default function RowTop(props: { session: SessionType; scale: number }) {
-  const swapping = props.session.me.live && props.session.global.swapping;
+  const swapping = props.session.me.live && props.session.globals.swapping;
 
   const full =
     props.session.enemies.length === 1 || props.session.enemies.length === 3;
@@ -30,7 +34,7 @@ export default function RowTop(props: { session: SessionType; scale: number }) {
               cursor: swapping || callable! ? "pointer" : "",
             }}
             onClick={
-              swapping || callable!
+              swapping
                 ? async () => {
                     const swap = await gameSwitch(enemy!.name);
                     if (swap["code"] !== 200) {
@@ -38,6 +42,19 @@ export default function RowTop(props: { session: SessionType; scale: number }) {
                         autoClose: API_NOTIFICATION_GAME_TIMEOUT,
                         message:
                           swap["message"] ?? "An unknown error occurred.",
+                        color: "red",
+                        icon: <SwapHoriz />,
+                      });
+                    }
+                  }
+                : callable!
+                ? async () => {
+                    const appeal = await gameAppeal(enemy!.name);
+                    if (appeal["code"] !== 200) {
+                      showNotification({
+                        autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                        message:
+                          appeal["message"] ?? "An unknown error occurred.",
                         color: "red",
                         icon: <SwapHoriz />,
                       });
