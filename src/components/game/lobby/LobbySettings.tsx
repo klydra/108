@@ -17,146 +17,148 @@ import { SessionType } from "../../../models/Session";
 
 export default function LobbySettings(props: { session: SessionType }) {
   return (
-    <div className="max-w-2xl h-full py-8 flex flex-col flex-grow justify-center items-center gap-y-4 overflow-y-auto">
-      <Rule
-        icon={<Reorder className="scale-[200%]" />}
-        title="deck"
-        text="number of cards that are distributed to everyone"
-      >
-        <NumberInput
-          value={props.session.rules.count}
-          defaultValue={7}
-          placeholder="7"
-          minLength={1}
-          maxLength={2}
-          onChange={async (count) => {
-            if (count && count >= 5 && count <= 12)
-              await rules(props.session, {
-                count: count ?? 7,
-              });
-          }}
-        />
-      </Rule>
-      <Rule
-        icon={<Shuffle className="scale-[200%]" />}
-        title="random cards"
-        text="order cards …..gsfdagfgsafdgas fgdfasgfdgasfg"
-      >
-        <Switch
-          color="gray"
-          checked={props.session.rules.ordered}
-          onClick={() =>
-            rules(props.session, {
-              ordered: !props.session.rules.ordered,
-            })
-          }
-        />
-      </Rule>
-      <Rule
-        icon={<EmojiEvents className="scale-[200%]" />}
-        title="short match"
-        text="the game ends when the first player plays all his cards"
-      >
-        <Switch
-          color="gray"
-          checked={props.session.rules.king}
-          onClick={() =>
-            rules(props.session, {
-              king: !props.session.rules.king,
-            })
-          }
-        />
-      </Rule>
-      <Rule
-        icon={<Star className="scale-[200%]" />}
-        title="to good to go"
-        text="if you draw a matching card you can play it or hold it"
-      >
-        <Switch
-          color="gray"
-          checked={props.session.rules.hold}
-          onClick={() =>
-            rules(props.session, {
-              hold: !props.session.rules.hold,
-            })
-          }
-        />
-      </Rule>
-      <Rule
-        icon={<Filter9Plus className="scale-[200%]" />}
-        title="million cards"
-        text="you can draw as long cards as you didn´t got a matching one"
-      >
-        <Switch
-          color="gray"
-          checked={props.session.rules.unlimited}
-          onClick={() =>
-            rules(props.session, {
-              unlimited: !props.session.rules.unlimited,
-            })
-          }
-        />
-      </Rule>
-      <Rule
-        icon={<Layers className="scale-[200%]" />}
-        title="2 stacks"
-        text="Draw-2-cards are stackable, that the next player needs to draw 2, 3, 4, … times as much cards."
-      >
-        <Switch
-          color="gray"
-          checked={props.session.rules.stack2}
-          onClick={() =>
-            rules(props.session, {
-              stack2: !props.session.rules.stack2,
-            })
-          }
-        />
-      </Rule>
-      <Rule
-        icon={<Layers className="scale-[200%]" />}
-        title="4 stacks"
-        text="Draw-4-cards and draw-4-cards are stackable, that the next player needs to draw 2, 3, 4, … times as much cards."
-      >
-        <Switch
-          color="gray"
-          checked={props.session.rules.stack4}
-          onClick={() =>
-            rules(props.session, {
-              stack4: !props.session.rules.stack4,
-            })
-          }
-        />
-      </Rule>
-      <Rule
-        icon={<CompareArrows className="scale-[200%]" />}
-        title="magic 7"
-        text="If a 7 is played, the player can choose one opponent to switch cards with."
-      >
-        <Switch
-          color="gray"
-          checked={props.session.rules.swap}
-          onClick={() =>
-            rules(props.session, {
-              swap: !props.session.rules.swap,
-            })
-          }
-        />
-      </Rule>
-      <Rule
-        icon={<Speed className="scale-[200%]" />}
-        title="fast, faster, next one"
-        text="If a card is played, and a player has the identical card the player can play the identical card and from him the game continues."
-      >
-        <Switch
-          color="gray"
-          checked={props.session.rules.throw}
-          onClick={() =>
-            rules(props.session, {
-              throw: !props.session.rules.throw,
-            })
-          }
-        />
-      </Rule>
+    <div className="max-w-2xl h-full overflow-y-auto">
+      <div className="flex flex-col flex-grow justify-center items-center gap-y-4 mx-8">
+        <Rule
+          icon={<Reorder className="scale-[200%]" />}
+          title="deck"
+          text="number of cards that are distributed to everyone"
+        >
+          <NumberInput
+            value={props.session.rules.count}
+            defaultValue={7}
+            placeholder="7"
+            minLength={1}
+            maxLength={2}
+            onChange={async (count) => {
+              if (count && count >= 5 && count <= 12)
+                await rules(props.session, {
+                  count: count ?? 7,
+                });
+            }}
+          />
+        </Rule>
+        <Rule
+          icon={<Shuffle className="scale-[200%]" />}
+          title="random cards"
+          text="order cards …..gsfdagfgsafdgas fgdfasgfdgasfg"
+        >
+          <Switch
+            color="gray"
+            checked={props.session.rules.ordered}
+            onClick={() =>
+              rules(props.session, {
+                ordered: !props.session.rules.ordered,
+              })
+            }
+          />
+        </Rule>
+        <Rule
+          icon={<EmojiEvents className="scale-[200%]" />}
+          title="short match"
+          text="the game ends when the first player plays all his cards"
+        >
+          <Switch
+            color="gray"
+            checked={props.session.rules.king}
+            onClick={() =>
+              rules(props.session, {
+                king: !props.session.rules.king,
+              })
+            }
+          />
+        </Rule>
+        <Rule
+          icon={<Star className="scale-[200%]" />}
+          title="to good to go"
+          text="if you draw a matching card you can play it or hold it"
+        >
+          <Switch
+            color="gray"
+            checked={props.session.rules.hold}
+            onClick={() =>
+              rules(props.session, {
+                hold: !props.session.rules.hold,
+              })
+            }
+          />
+        </Rule>
+        <Rule
+          icon={<Filter9Plus className="scale-[200%]" />}
+          title="million cards"
+          text="you can draw as long cards as you didn´t got a matching one"
+        >
+          <Switch
+            color="gray"
+            checked={props.session.rules.unlimited}
+            onClick={() =>
+              rules(props.session, {
+                unlimited: !props.session.rules.unlimited,
+              })
+            }
+          />
+        </Rule>
+        <Rule
+          icon={<Layers className="scale-[200%]" />}
+          title="2 stacks"
+          text="Draw-2-cards are stackable, that the next player needs to draw 2, 3, 4, … times as much cards."
+        >
+          <Switch
+            color="gray"
+            checked={props.session.rules.stack2}
+            onClick={() =>
+              rules(props.session, {
+                stack2: !props.session.rules.stack2,
+              })
+            }
+          />
+        </Rule>
+        <Rule
+          icon={<Layers className="scale-[200%]" />}
+          title="4 stacks"
+          text="Draw-4-cards and draw-4-cards are stackable, that the next player needs to draw 2, 3, 4, … times as much cards."
+        >
+          <Switch
+            color="gray"
+            checked={props.session.rules.stack4}
+            onClick={() =>
+              rules(props.session, {
+                stack4: !props.session.rules.stack4,
+              })
+            }
+          />
+        </Rule>
+        <Rule
+          icon={<CompareArrows className="scale-[200%]" />}
+          title="magic 7"
+          text="If a 7 is played, the player can choose one opponent to switch cards with."
+        >
+          <Switch
+            color="gray"
+            checked={props.session.rules.swap}
+            onClick={() =>
+              rules(props.session, {
+                swap: !props.session.rules.swap,
+              })
+            }
+          />
+        </Rule>
+        <Rule
+          icon={<Speed className="scale-[200%]" />}
+          title="fast, faster, next one"
+          text="If a card is played, and a player has the identical card the player can play the identical card and from him the game continues."
+        >
+          <Switch
+            color="gray"
+            checked={props.session.rules.throw}
+            onClick={() =>
+              rules(props.session, {
+                throw: !props.session.rules.throw,
+              })
+            }
+          />
+        </Rule>
+      </div>
     </div>
   );
 }
