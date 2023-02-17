@@ -25,13 +25,13 @@ func defaultPlayers(name string) string {
 }
 
 func defaultGlobals() string {
-	globals, _ := json.Marshal([]Globals{{
+	globals, _ := json.Marshal(Globals{
 		Live:      "",
 		Direction: true,
 		Stacking:  false,
 		Swapping:  false,
 		Drawable:  false,
-	}})
+	})
 	return string(globals)
 }
 
