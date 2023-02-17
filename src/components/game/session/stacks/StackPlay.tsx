@@ -11,7 +11,7 @@ export default function StackPlay(props: {
     <div className="fixed flex inset-y-1/2 right-[37.5%] left-[50%] inset-y-[42%] flex justify-center items-center">
       <AppearCard
         key={props.animator.appear.toString()}
-        card={codeToType(props.session.stack[props.session.stack.length - 1])}
+        card={codeToType(props.session.stack[0])}
       />
     </div>
   );

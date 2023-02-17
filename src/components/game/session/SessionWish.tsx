@@ -10,10 +10,7 @@ export default function SessionWish(props: { session: SessionType }) {
   if (
     !props.session.me.live ||
     props.session.stack.length === 0 ||
-    !(
-      props.session.stack[props.session.stack.length - 1].charAt(1) ===
-      CardColor.DARK
-    )
+    !(props.session.stack[0].charAt(1) === CardColor.DARK)
   )
     return null;
 

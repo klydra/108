@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
 	"github.com/oklog/ulid/v2"
@@ -15,76 +14,6 @@ import (
 	"net/http"
 	"os"
 )
-
-type Status struct {
-	Status string `json:"status" xml:"status"`
-}
-
-type Registration struct {
-	Name  string `json:"name" xml:"name"`
-	Token string `json:"token" xml:"token"`
-}
-
-type Session struct {
-	Game string `json:"game" xml:"game"`
-}
-
-type Player struct {
-	Name   string `json:"name" xml:"name"`
-	Cards  int    `json:"cards" xml:"cards"`
-	Called bool   `json:"called" xml:"called"`
-}
-
-type Globals struct {
-	Live      string `json:"live" xml:"live"`
-	Direction bool   `json:"direction" xml:"direction"` // Direction of turns of players (true is clockwise)
-	Stacking  bool   `json:"stacking" xml:"stacking"`
-	Swapping  bool   `json:"swapping" xml:"swapping"`
-	Drawable  bool   `json:"drawable" xml:"drawable"`
-}
-
-type Rules struct {
-	Count     int  `json:"count" xml:"count"`         // Number of cards every player gets at start
-	Stack2    bool `json:"stack2" xml:"stack2"`       // Draw 2 cards are stackable
-	Stack4    bool `json:"stack4" xml:"stack4"`       // Draw 4 cards are stackable
-	Swap      bool `json:"swap" xml:"swap"`           // LobbyPlayers selects who to swap hands with when a 7 is played
-	Throw     bool `json:"throw" xml:"throw"`         // LobbyPlayers can throw identical cards in anytime
-	Unlimited bool `json:"unlimited" xml:"unlimited"` // LobbyPlayers draw until card is playable
-	Ordered   bool `json:"ordered" xml:"ordered"`     // LobbyPlayers draw from bottom of stack
-	Hold      bool `json:"hold" xml:"hold"`           // LobbyPlayers can hold matching card after drawn
-	King      bool `json:"king" xml:"king"`           // Game ends when the first player is finished
-	Timeout   int  `json:"timeout" xml:"timeout"`     // Time each player has to take his turn (seconds)
-}
-
-var DECK = []string{
-	"0y", "0g", "0b", "0p",
-	"1y", "1g", "1b", "1p",
-	"1y", "1g", "1b", "1p",
-	"2y", "2g", "2b", "2p",
-	"2y", "2g", "2b", "2p",
-	"3y", "3g", "3b", "3p",
-	"3y", "3g", "3b", "3p",
-	"4y", "4g", "4b", "4p",
-	"4y", "4g", "4b", "4p",
-	"5y", "5g", "5b", "5p",
-	"5y", "5g", "5b", "5p",
-	"6y", "6g", "6b", "6p",
-	"6y", "6g", "6b", "6p",
-	"7y", "7g", "7b", "7p",
-	"7y", "7g", "7b", "7p",
-	"8y", "8g", "8b", "8p",
-	"8y", "8g", "8b", "8p",
-	"9y", "9g", "9b", "9p",
-	"9y", "9g", "9b", "9p",
-	"by", "bg", "bb", "bp",
-	"by", "bg", "bb", "bp",
-	"dy", "dg", "db", "dp",
-	"dy", "dg", "db", "dp",
-	"py", "pg", "pb", "pp",
-	"py", "pg", "pb", "pp",
-	"wd", "wd", "wd", "wd",
-	"jd", "jd", "jd", "jd",
-}
 
 func main() {
 	app := pocketbase.New()
@@ -125,7 +54,7 @@ func main() {
 		"CORS allowed domain origins list",
 	)
 
-	app.RootCmd.ParseFlags(os.Args[1:])
+	_ = app.RootCmd.ParseFlags(os.Args[1:])
 
 	// ---------------------------------------------------------------
 	// Custom routes:
@@ -141,242 +70,216 @@ func main() {
 		// Attention: API safety checks intentionally removed to save on resources in enclosed system
 
 		e.Router.POST("/user/register", func(c echo.Context) error {
-			collection, err := app.Dao().FindCollectionByNameOrId("players")
+			players, err := getPlayers(app)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't access player database.", err)
+				return err
 			}
 
-			record := models.NewRecord(collection)
-			record.Set("name", ulid.Make().String())
-			record.Set("hand", "[{}]")
+			player := models.NewRecord(players)
+			player.Set("name", ulid.Make().String())
+			player.Set("game", "")
+			player.Set("hand", defaultJson())
 
-			err = app.Dao().SaveRecord(record)
-			if err != nil {
-				return apis.NewApiError(500, "Couldn't create player record.", err)
+			if err := savePlayer(app, player); err != nil {
+				return err
 			}
 
-			return c.JSON(http.StatusOK, Registration{Name: record.GetString("name"), Token: record.Id})
+			return c.JSON(http.StatusOK, Registration{Name: player.GetString("name"), Token: player.Id})
 		})
 
 		e.Router.POST("/session/create", func(c echo.Context) error {
-			// Retrieve target user
-			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
+			player, err := getPlayerRecordByToken(app, c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Can't find user.", err)
+				return err
 			}
 
-			if len(user.GetString("game")) != 0 {
+			if len(player.GetString("game")) != 0 {
 				// Check for ongoing game
-				game, err := app.Dao().FindRecordById("games", user.GetString("game"))
+				game, err := getGameRecordByCode(app, player.GetString("game"))
 				if err == nil {
 					// Registered for valid game
 					// Retrieve ongoing game player data
-					var players []Player
-					err = json.Unmarshal([]byte(game.GetString("players")), &players)
+
+					players, err := playersFromGame(game)
 					if err != nil {
-						return apis.NewApiError(500, "Couldn't get ongoing players.", err)
+						return err
 					}
 
 					// Remove player from ongoing game
-					for i := 0; i < len(players); i++ {
-						if players[i].Name == user.Get("name") {
-							updated, err := json.Marshal(append(players[:i], players[i+1:]...))
-							if err != nil {
-								return apis.NewApiError(500, "Couldn't generate ongoing update request.", err)
-							}
+					index, err := playerIndexByName(player.GetString("name"), players)
+					if err != nil {
+						return err
+					}
+					playersUpdated, err := playersFromStruct(append(players[:index], players[index+1:]...))
+					if err != nil {
+						return err
+					}
 
-							game.Set("players", updated)
-							err = app.Dao().SaveRecord(game)
-							if err != nil {
-								return apis.NewApiError(500, "Couldn't remove player from ongoing game.", err)
-							}
-							break
-						}
+					game.Set("players", playersUpdated)
+					if err := saveGame(app, game); err != nil {
+
 					}
 				}
 
-				// Remove ongoing game from player
-				user.Set("game", "")
-				err = app.Dao().SaveRecord(user)
-				if err != nil {
-					return apis.NewApiError(500, "Couldn't update player game.", err)
+				player.Set("game", "")
+				if err := savePlayer(app, player); err != nil {
+
 				}
 			}
 
-			collection, err := app.Dao().FindCollectionByNameOrId("games")
+			games, err := getGames(app)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't access game database.", err)
+				return err
 			}
 
-			players, err := json.Marshal([]Player{{
-				Name:   user.GetString("name"),
-				Cards:  0,
-				Called: false,
-			}})
-			if err != nil {
-				return apis.NewApiError(500, "Couldn't generate default players.", err)
+			game := models.NewRecord(games)
+			game.Set("players", defaultPlayers(player.GetString("name")))
+			game.Set("globals", defaultGlobals())
+			game.Set("rules", defaultRules())
+			game.Set("stack", defaultJson())
+
+			if err := saveGame(app, game); err != nil {
+
 			}
 
-			globals, err := json.Marshal([]Globals{{
-				Live:      "",
-				Direction: true,
-				Stacking:  false,
-				Swapping:  false,
-				Drawable:  false,
-			}})
-			if err != nil {
-				return apis.NewApiError(500, "Couldn't generate default globals.", err)
+			player.Set("game", game.Id)
+
+			if err := savePlayer(app, player); err != nil {
+
 			}
 
-			rules, err := json.Marshal(Rules{
-				Count:     7,
-				Stack2:    false,
-				Stack4:    false,
-				Swap:      false,
-				Throw:     false,
-				Unlimited: false,
-				Ordered:   false,
-				Hold:      false,
-				King:      false,
-				Timeout:   15,
-			})
-			if err != nil {
-				return apis.NewApiError(500, "Couldn't generate default rules.", err)
-			}
-
-			// Create game record
-			record := models.NewRecord(collection)
-			record.Set("players", players)
-			record.Set("globals", globals)
-			record.Set("rules", rules)
-			record.Set("stack", "[{}]")
-
-			// Updating state
-			err = app.Dao().SaveRecord(record)
-			if err != nil {
-				return apis.NewApiError(500, "Couldn't create game record.", err)
-			}
-
-			// Adding player to game
-			user.Set("game", record.Id)
-
-			err = app.Dao().SaveRecord(user)
-			if err != nil {
-				return apis.NewApiError(500, "Couldn't add player to game.", err)
-			}
-
-			return c.JSON(http.StatusOK, Session{Game: record.Id})
+			return c.JSON(http.StatusOK, Session{Game: game.Id})
 		})
 
 		e.Router.POST("/session/join", func(c echo.Context) error {
 			// Retrieve target user
-			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
+			player, err := getPlayerRecordByToken(app, c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't find player.", err)
+				return err
 			}
 
-			if len(user.GetString("game")) != 0 && user.GetString("game") != c.Request().Header.Get("game") {
-				// Check for ongoing game
-				game, err := app.Dao().FindRecordById("games", user.GetString("game"))
+			// If player is already participating in different game
+			if len(player.GetString("game")) != 0 && player.GetString("game") != c.Request().Header.Get("game") {
+				// Remove player from game
+				game, err := getGameRecordByCode(app, player.GetString("game"))
 				if err != nil {
-					return apis.NewApiError(500, "User registered for game that is absent.", err)
+					return err
 				}
 
-				// Retrieve ongoing game player data
-				var players []Player
-				err = json.Unmarshal([]byte(game.GetString("players")), &players)
+				players, err := playersFromGame(game)
 				if err != nil {
-					return apis.NewApiError(500, "Couldn't get ongoing players.", err)
+					return err
 				}
 
-				// Remove player from ongoing game
-				for i := 0; i < len(players); i++ {
-					if players[i].Name == user.Get("name") {
-						players = append(players[:i], players[i+1:]...)
+				globals, err := globalsFromGame(game)
+				if err != nil {
+					return err
+				}
 
-						// Clean up dead game
-						if len(players) == 1 {
-							player, err := app.Dao().FindFirstRecordByData("players", "name", players[0].Name)
-							if err != nil {
-								return apis.NewApiError(500, "Couldn't get player for cleanup.", err)
-							}
+				// Check if game will end
+				if len(players) <= 2 {
+					// Stop game if only one player
+					players[0].Called = false
 
-							player.Set("game", "")
-							player.Set("hand", "[{}]")
-
-							err = app.Dao().SaveRecord(player)
-							if err != nil {
-								return apis.NewApiError(500, "Couldn't update player for cleanup.", err)
-							}
-
-							err = app.Dao().DeleteRecord(game)
-							if err != nil {
-								return apis.NewApiError(500, "Couldn't delete dead game.", err)
-							}
+					// Restore game defaults
+					game.Set("globals", defaultGlobals())
+				} else {
+					// Shifting turn if necessary
+					if globals.Live == player.GetString("name") {
+						// Evaluating next player
+						next := nextPlayer(player.GetString("name"), players, globals)
+						if next < 0 {
+							return err
 						}
 
-						// Save state
-						updated, err := json.Marshal(players)
+						globals.Live = players[next].Name
+
+						// Save globals to game
+						globalsUpdated, err := globalsFromStruct(globals)
 						if err != nil {
-							return apis.NewApiError(500, "Couldn't generate ongoing update request.", err)
+							return err
 						}
 
-						game.Set("players", updated)
-						err = app.Dao().SaveRecord(game)
-						if err != nil {
-							return apis.NewApiError(500, "Couldn't remove player from ongoing game.", err)
-						}
-						break
+						game.Set("globals", globalsUpdated)
 					}
+
+					// Remove player from ongoing game
+					index, err := playerIndexByName(player.GetString("name"), players)
+					if err != nil {
+						return err
+					}
+					players = append(players[:index], players[index+1:]...)
 				}
 
-				// Remove ongoing game from player
-				user.Set("game", "")
-				err = app.Dao().SaveRecord(user)
+				// Save players to game
+				playersUpdated, err := playersFromStruct(players)
 				if err != nil {
-					return apis.NewApiError(500, "Couldn't update player game.", err)
+					return err
+				}
+
+				game.Set("players", playersUpdated)
+
+				// Remove game from player
+				player.Set("game", "")
+				player.Set("hand", defaultJson())
+
+				// Save changes
+				err = saveGame(app, game)
+				if err != nil {
+					return err
+				}
+
+				err = savePlayer(app, player)
+				if err != nil {
+					return err
 				}
 			}
 
 			// Retrieve target game to join
-			game, err := app.Dao().FindRecordById("games", c.Request().Header.Get("game"))
+			game, err := getGameRecordByCode(app, c.Request().Header.Get("game"))
 			if err != nil {
-				return apis.NewBadRequestError("Can't find specified game.", err)
+				return err
 			}
 
-			if len(game.GetString("live")) > 0 && c.Request().Header.Get("game") != user.GetString("game") {
-				return apis.NewBadRequestError("Game has already started.", err)
+			globals, err := globalsFromGame(game)
+			if err != nil {
+				return err
 			}
 
-			if c.Request().Header.Get("game") != user.GetString("game") {
-				var players []Player
-				err = json.Unmarshal([]byte(game.GetString("players")), &players)
+			// Check if player isn't already participating
+			if c.Request().Header.Get("game") != player.GetString("game") {
+				// Check if game has already started
+				if len(globals.Live) > 0 {
+					return apis.NewBadRequestError("Game has already started.", err)
+				}
+
+				players, err := playersFromGame(game)
 				if err != nil {
-					return apis.NewApiError(500, "Couldn't get players for game.", err)
+					return err
 				}
 
 				// Adding player to game
-				updated, err := json.Marshal(append(players, Player{
-					Name:   user.GetString("name"),
-					Cards:  0,
-					Called: false,
-				}))
+				playersUpdated, err := playersFromStruct(append(players, defaultPlayer(player.GetString("name"))))
 				if err != nil {
-					return apis.NewApiError(500, "Couldn't generate game update request.", err)
+					return err
 				}
 
-				game.Set("players", updated)
-				err = app.Dao().SaveRecord(game)
+				game.Set("players", playersUpdated)
+
+				// Save changes
+				err = saveGame(app, game)
 				if err != nil {
-					return apis.NewApiError(500, "Couldn't add player to game.", err)
+					return err
 				}
 			}
 
 			// Add game to player
-			user.Set("game", game.Id)
-			err = app.Dao().SaveRecord(user)
+			player.Set("game", game.Id)
+
+			// Save changes
+			err = savePlayer(app, player)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't update player game.", err)
+				return err
 			}
 
 			return c.JSON(http.StatusOK, Status{Status: "ok"})
@@ -608,18 +511,18 @@ func main() {
 
 		e.Router.POST("/session/ongoing", func(c echo.Context) error {
 			// Retrieve target user
-			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
+			player, err := getPlayerRecordByToken(app, c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Can't find user.", err)
+				return err
 			}
 
-			if len(user.GetString("game")) == 0 {
+			if len(player.GetString("game")) == 0 {
 				return c.JSON(http.StatusOK, Session{Game: ""})
 			}
 
-			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
+			game, err := getGameRecordByCode(app, player.GetString("game"))
 			if err != nil {
-				return apis.NewBadRequestError("User participating in absent game.", err)
+				return err
 			}
 
 			return c.JSON(http.StatusOK, Session{Game: game.Id})
@@ -1818,37 +1721,3 @@ func main() {
 		log.Fatal(err)
 	}
 }
-
-/*func nextPlayer(name string, players []Player, rules Rules) int {
-	if rules.Direction {
-		for i := 0; i < len(players); i++ {
-			if players[i].Name == name {
-				if i == len(players)-1 {
-					return 0
-				} else {
-					return i + 1
-				}
-			}
-		}
-	} else {
-		for i := len(players) - 1; i >= 0; i-- {
-			if players[i].Name == name {
-				if i == 0 {
-					return len(players) - 1
-				} else {
-					return i - 1
-				}
-			}
-		}
-	}
-
-	return -1
-}
-
-func resetCard(card string) string {
-	if card[0] == 'j' || card[0] == 'w' {
-		card = string(card[0]) + string('d')
-	}
-
-	return card
-}*/
