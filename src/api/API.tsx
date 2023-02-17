@@ -2,7 +2,7 @@ import { showNotification } from "@mantine/notifications";
 import { AccountCircle, PlayArrow } from "@mui/icons-material";
 import React from "react";
 
-export const API_HOST = "http://localhost:8090";
+export const API_HOST = "https://api.108.cards";
 export const API_NOTIFICATION_NOTICE_TIMEOUT = 8000;
 export const API_NOTIFICATION_GAME_TIMEOUT = 1000;
 
