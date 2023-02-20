@@ -75,7 +75,7 @@ export default function RowLeft(props: {
                 className="m-2 h-16 w-16 rounded-xl bg-contrast duration-300 absolute animate-ping"
                 style={{
                   display: enemy!.live || swapping || callable! ? "" : "none",
-                  backgroundColor: swapping || callable! ? "purple" : "",
+                  backgroundColor: swapping ? "orange" : callable! ? "red" : "",
                 }}
               ></div>
             </div>
