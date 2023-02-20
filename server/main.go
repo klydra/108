@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
 	"github.com/oklog/ulid/v2"
@@ -11,6 +12,7 @@ import (
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	"log"
 	_ "main/migrations"
+	"math/rand"
 	"net/http"
 	"os"
 )
@@ -282,15 +284,15 @@ func main() {
 			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
-		/*e.Router.POST("/session/start", func(c echo.Context) error {
+		e.Router.POST("/session/start", func(c echo.Context) error {
 			// Retrieve target user
-			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
+			player, err := getPlayerRecordByToken(app, c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Can't find user.", err)
+				return err
 			}
 
-			if len(user.GetString("game")) == 0 {
-				return apis.NewBadRequestError("You are not participating in this game.", err)
+			if err := participating(player); err != nil {
+				return err
 			}
 
 			game, err := app.Dao().FindRecordById("games", user.GetString("game"))

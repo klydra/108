@@ -1,6 +1,9 @@
 package main
 
-import "github.com/pocketbase/pocketbase/apis"
+import (
+	"github.com/pocketbase/pocketbase/apis"
+	"github.com/pocketbase/pocketbase/models"
+)
 
 // ---------------------------------------------------------------
 // Find methods
@@ -56,4 +59,11 @@ func resetCard(card string) string {
 	}
 
 	return card
+}
+
+func participating(player *models.Record) *apis.ApiError {
+	if len(player.GetString("game")) == 0 {
+		return apis.NewBadRequestError("You are not participating in this game.", err)
+	}
+	return nil
 }
