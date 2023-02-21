@@ -27,14 +27,14 @@ func playerIndexByName(name string, players []Player) (int, *apis.ApiError) {
 	return -1, apis.NewApiError(500, "Can't find player in struct.", nil)
 }
 
-func nextPlayer(name string, players []Player, globals Globals) int {
+func nextPlayer(name string, players []Player, globals Globals) (int, *apis.ApiError) {
 	if globals.Direction {
 		for i := 0; i < len(players); i++ {
 			if players[i].Name == name {
 				if i == len(players)-1 {
-					return 0
+					return 0, nil
 				} else {
-					return i + 1
+					return i + 1, nil
 				}
 			}
 		}
@@ -42,15 +42,15 @@ func nextPlayer(name string, players []Player, globals Globals) int {
 		for i := len(players) - 1; i >= 0; i-- {
 			if players[i].Name == name {
 				if i == 0 {
-					return len(players) - 1
+					return len(players) - 1, nil
 				} else {
-					return i - 1
+					return i - 1, nil
 				}
 			}
 		}
 	}
 
-	return -1
+	return -1, apis.NewApiError(500, "Could not evaluate next player.", nil)
 }
 
 func resetCard(card string) string {
@@ -63,7 +63,21 @@ func resetCard(card string) string {
 
 func participating(player *models.Record) *apis.ApiError {
 	if len(player.GetString("game")) == 0 {
-		return apis.NewBadRequestError("You are not participating in this game.", err)
+		return apis.NewBadRequestError("You are not participating in this game.", nil)
+	}
+	return nil
+}
+
+func hosting(player *models.Record, players []Player) *apis.ApiError {
+	if players[0].Name != player.GetString("name") {
+		return apis.NewBadRequestError("You are not the host.", nil)
+	}
+	return nil
+}
+
+func playing(player *models.Record, globals Globals) *apis.ApiError {
+	if globals.Live == player.GetString("name") {
+		return apis.NewBadRequestError("You are not the host.", nil)
 	}
 	return nil
 }

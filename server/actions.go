@@ -11,7 +11,7 @@ import (
 // defaults
 // ---------------------------------------------------------------
 
-func defaultPlayer(name string) Player {
+func defaultPlayerStruct(name string) Player {
 	return Player{
 		Name:   name,
 		Cards:  0,
@@ -20,19 +20,23 @@ func defaultPlayer(name string) Player {
 }
 
 func defaultPlayers(name string) string {
-	players, _ := json.Marshal([]Player{defaultPlayer(name)})
+	players, _ := json.Marshal([]Player{defaultPlayerStruct(name)})
 	return string(players)
 }
 
 func defaultGlobals() string {
-	globals, _ := json.Marshal(Globals{
+	globals, _ := json.Marshal(defaultGlobalsStruct())
+	return string(globals)
+}
+
+func defaultGlobalsStruct() Globals {
+	return Globals{
 		Live:      "",
 		Direction: true,
 		Stacking:  false,
 		Swapping:  false,
 		Drawable:  false,
-	})
-	return string(globals)
+	}
 }
 
 func defaultRules() string {
@@ -75,6 +79,14 @@ func playersFromStruct(players []Player) (string, *apis.ApiError) {
 	return string(marshalled), nil
 }
 
+func rulesFromString(rules string) (Rules, *apis.ApiError) {
+	var unmarshalled Rules
+	if err := json.Unmarshal([]byte(rules), &unmarshalled); err != nil {
+		return Rules{}, apis.NewApiError(500, "Can't parse rules.", err)
+	}
+	return unmarshalled, nil
+}
+
 func rulesFromStruct(rules Rules) (string, *apis.ApiError) {
 	marshalled, err := json.Marshal(rules)
 	if err != nil {
@@ -103,9 +115,9 @@ func stackFromStruct(stack []string) (string, *apis.ApiError) {
 // records to structs
 // ---------------------------------------------------------------
 
-func handFromPlayer(game *models.Record) ([]string, *apis.ApiError) {
+func handFromPlayer(player *models.Record) ([]string, *apis.ApiError) {
 	var hand []string
-	if err := json.Unmarshal([]byte(game.GetString("players")), &hand); err != nil {
+	if err := json.Unmarshal([]byte(player.GetString("hand")), &hand); err != nil {
 		return nil, apis.NewApiError(500, "Can't parse hand.", err)
 	}
 	return hand, nil
