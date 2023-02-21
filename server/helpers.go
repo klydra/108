@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/models"
 )
@@ -80,4 +81,23 @@ func playing(player *models.Record, globals Globals) *apis.ApiError {
 		return apis.NewBadRequestError("You are not the host.", nil)
 	}
 	return nil
+}
+
+func resetPlayers(app *pocketbase.PocketBase, players []Player) ([]Player, *apis.ApiError) {
+	for i := 0; i < len(players); i++ {
+		players[i].Called = false
+		players[i].Cards = 0
+
+		player, err := getPlayerRecordByName(app, players[i].Name)
+		if err != nil {
+			return nil, err
+		}
+
+		player.Set("hand", defaultJson())
+
+		if err := savePlayer(app, player); err != nil {
+			return nil, err
+		}
+	}
+	return players, nil
 }
