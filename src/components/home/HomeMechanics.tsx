@@ -11,16 +11,8 @@ export default function HomeMechanics(props: { theme: CardColor }) {
       <Row>
         <Column>
           <Entry
-            title="draw"
-            text="If a player can´t play a card he needs to draw a card."
-          >
-            <div className="h-52">
-              <CardBack />
-            </div>
-          </Entry>
-          <Entry
             title="match"
-            text="When it is a player's turn, he can play a card if it has the same color, the same value or if it is a wish-card or plus-4-card."
+            text="Depending on the previous card played, the player can play a card with matching color or value. Wish or draw-4 cards, may be played regardless of the previous card."
           >
             <div className="z-10">
               <CardFront
@@ -40,8 +32,16 @@ export default function HomeMechanics(props: { theme: CardColor }) {
             </div>
           </Entry>
           <Entry
+            title="draw"
+            text="If a player can´t play a card he needs to draw a card."
+          >
+            <div className="h-52">
+              <CardBack />
+            </div>
+          </Entry>
+          <Entry
             title="wish"
-            text="If a wish-card is played, the player can define the next played color."
+            text="If a wish card is played, the color which needs to be played next can be chosen."
           >
             <CardFront
               card={{
@@ -52,7 +52,7 @@ export default function HomeMechanics(props: { theme: CardColor }) {
           </Entry>
           <Entry
             title="block"
-            text="If a block-card is played, the player whose turn it would be next must sit out."
+            text="If a block card is played, the next player will be skipped."
           >
             <CardFront
               card={{
@@ -63,7 +63,7 @@ export default function HomeMechanics(props: { theme: CardColor }) {
           </Entry>
           <Entry
             title="rotate"
-            text="If a rotate-card is played, it is played in the opposite direction to the previous one."
+            text="If a rotate card is played, the direction of the game is being swapped."
           >
             <CardFront
               card={{
@@ -76,7 +76,7 @@ export default function HomeMechanics(props: { theme: CardColor }) {
         <Column>
           <Entry
             title="plus 2"
-            text="If a draw-2-card is played, the next player needs to draw 2 cards. "
+            text="If a draw-2 card is played, the next player needs to draw 2 cards. "
           >
             <CardFront
               card={{
@@ -87,7 +87,7 @@ export default function HomeMechanics(props: { theme: CardColor }) {
           </Entry>
           <Entry
             title="plus 4"
-            text="If a draw-4-card is played, the next player need´s to draw 4 cards and the previous player define the next played color. "
+            text="If a draw-4 card is played, the color which needs to be played next can be chosen. The next player needs to draw 4 cards. "
           >
             <CardFront
               card={{
@@ -98,24 +98,11 @@ export default function HomeMechanics(props: { theme: CardColor }) {
           </Entry>
           <Entry
             title={' "ONE" '}
-            text="If a player only has one card left, he needs to say “ONE” if he get caught, don´t saying it, he needs to draw 2 cards."
+            text="If a player only has one card left, he needs to say “ONE”. If forgotten, players can report by clicking on their profile picture and the player needs to draw 2 additional cards."
           >
             <CardFront
               card={{
                 face: CardFace.NUMBER_1,
-                color: props.theme,
-              }}
-            />
-          </Entry>
-          <Entry
-            title="winner"
-            text={
-              'The first player with zero cards left wins. "Winner Winner Chicken Dinner" '
-            }
-          >
-            <CardFront
-              card={{
-                face: CardFace.NUMBER_0,
                 color: props.theme,
               }}
             />

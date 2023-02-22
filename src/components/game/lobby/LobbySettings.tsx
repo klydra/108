@@ -41,7 +41,7 @@ export default function LobbySettings(props: { session: SessionType }) {
         <Rule
           icon={<Shuffle className="scale-[200%]" />}
           title="random cards"
-          text="order cards …..gsfdagfgsafdgas fgdfasgfdgasfg"
+          text="Cards drawn, given, etc. are taken from a random position in the stack."
         >
           <Switch
             color="gray"
@@ -54,9 +54,24 @@ export default function LobbySettings(props: { session: SessionType }) {
           />
         </Rule>
         <Rule
+          icon={<Shuffle className="scale-[200%]" />}
+          title="unlimited cards"
+          text="There is no cards deck. Every card drawn, given, etc. is purely random."
+        >
+          <Switch
+            color="gray"
+            checked={props.session.rules.unlimited}
+            onClick={() =>
+              rules(props.session, {
+                unlimited: !props.session.rules.unlimited,
+              })
+            }
+          />
+        </Rule>
+        <Rule
           icon={<EmojiEvents className="scale-[200%]" />}
           title="short match"
-          text="the game ends when the first player plays all his cards"
+          text="The game ends when the first player has played out all their cards."
         >
           <Switch
             color="gray"
@@ -70,8 +85,8 @@ export default function LobbySettings(props: { session: SessionType }) {
         </Rule>
         <Rule
           icon={<Star className="scale-[200%]" />}
-          title="to good to go"
-          text="if you draw a matching card you can play it or hold it"
+          title="holding"
+          text="If you draw a matching card you choose to play it instantly or hold onto it."
         >
           <Switch
             color="gray"
@@ -86,7 +101,7 @@ export default function LobbySettings(props: { session: SessionType }) {
         <Rule
           icon={<Filter9Plus className="scale-[200%]" />}
           title="million cards"
-          text="you can draw as long cards as you didn´t got a matching one"
+          text="You need to draw until you get a matching card."
         >
           <Switch
             color="gray"
@@ -100,8 +115,8 @@ export default function LobbySettings(props: { session: SessionType }) {
         </Rule>
         <Rule
           icon={<Layers className="scale-[200%]" />}
-          title="2 stacks"
-          text="Draw-2-cards are stackable, that the next player needs to draw 2, 3, 4, … times as much cards."
+          title="stacks of 2"
+          text="Draw-2 cards are stackable."
         >
           <Switch
             color="gray"
@@ -115,8 +130,8 @@ export default function LobbySettings(props: { session: SessionType }) {
         </Rule>
         <Rule
           icon={<Layers className="scale-[200%]" />}
-          title="4 stacks"
-          text="Draw-4-cards and draw-4-cards are stackable, that the next player needs to draw 2, 3, 4, … times as much cards."
+          title="stacks of 4"
+          text="Draw-4 cards are stackable."
         >
           <Switch
             color="gray"
@@ -131,7 +146,7 @@ export default function LobbySettings(props: { session: SessionType }) {
         <Rule
           icon={<CompareArrows className="scale-[200%]" />}
           title="magic 7"
-          text="If a 7 is played, the player can choose one opponent to switch cards with."
+          text="If a 7 is played, the player can choose one opponent to swap cards with."
         >
           <Switch
             color="gray"
@@ -145,8 +160,8 @@ export default function LobbySettings(props: { session: SessionType }) {
         </Rule>
         <Rule
           icon={<Speed className="scale-[200%]" />}
-          title="fast, faster, next one"
-          text="If a card is played, and a player has the identical card the player can play the identical card and from him the game continues."
+          title="throwing"
+          text="If a card is played and a player has the identical card, they may choose to throw it in, even if it isn't their turn. The game will then continue from the player after them."
         >
           <Switch
             color="gray"

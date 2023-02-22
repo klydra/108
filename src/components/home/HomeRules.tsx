@@ -12,7 +12,15 @@ export default function HomeRules(props: { theme: CardColor }) {
         <Column>
           <Entry
             title="random cards"
-            text="The deck is ordered or not ordered according to how the cards were previously played."
+            text="Cards drawn, given, etc. are taken from a random position in the stack."
+          >
+            <div className="h-52">
+              <CardBack />
+            </div>
+          </Entry>
+          <Entry
+            title="unlimited cards"
+            text="There is no cards deck. Every card drawn, given, etc. is purely random."
           >
             <div className="h-52">
               <CardBack />
@@ -20,7 +28,7 @@ export default function HomeRules(props: { theme: CardColor }) {
           </Entry>
           <Entry
             title="short match"
-            text="The game ends when the first player plays all his cards."
+            text="The game ends when the first player has played out all their cards."
           >
             <CardFront
               card={{
@@ -30,8 +38,8 @@ export default function HomeRules(props: { theme: CardColor }) {
             />
           </Entry>
           <Entry
-            title="to good to go"
-            text="If you draw a matching card you can play it instantly or hold it."
+            title="holding"
+            text="If you draw a matching card you choose to play it instantly or hold onto it."
           >
             <CardFront
               card={{
@@ -42,7 +50,7 @@ export default function HomeRules(props: { theme: CardColor }) {
           </Entry>
           <Entry
             title="million cards"
-            text="You can draw as long cards as you didn´t got a matching one."
+            text="You need to draw until you get a matching card."
           >
             <div className="h-52">
               <CardBack />
@@ -52,7 +60,7 @@ export default function HomeRules(props: { theme: CardColor }) {
         <Column>
           <Entry
             title="stacks"
-            text="Draw-2-cards and draw-4-cards are stackable, that the next player needs to draw 2, 3, 4, … times as much cards."
+            text="Draw-2 cards and draw-4 cards are stackable."
           >
             <CardFront
               card={{
@@ -63,7 +71,7 @@ export default function HomeRules(props: { theme: CardColor }) {
           </Entry>
           <Entry
             title="magic 7"
-            text="If a 7 is played, the player can choose one opponent to switch cards with."
+            text="If a 7 is played, the player can choose one opponent to swap cards with."
           >
             <CardFront
               card={{
@@ -73,8 +81,8 @@ export default function HomeRules(props: { theme: CardColor }) {
             />
           </Entry>
           <Entry
-            title="fast, faster, next one"
-            text="If a card is played and a player has the identical card, the player can play the identical card instantly and from him the game continues."
+            title="throwing"
+            text="If a card is played and a player has the identical card, they may choose to throw it in, even if it isn't their turn. The game will then continue from the player after them."
           >
             <div className="z-10">
               <CardFront
