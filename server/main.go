@@ -1403,6 +1403,11 @@ func main() {
 				return err
 			}
 
+			globals, err := globalsFromGame(game)
+			if err != nil {
+				return err
+			}
+
 			// Retrieve target player
 			target, err := getPlayerRecordByName(app, c.Request().Header.Get("player"))
 			if err != nil {
@@ -1413,6 +1418,16 @@ func main() {
 			targetIndex, err := playerIndexByName(target.GetString("name"), players)
 			if err != nil {
 				return err
+			}
+
+			// Check if target player had the previous turn
+			next, err := nextPlayer(c.Request().Header.Get("player"), players, globals)
+			if err != nil {
+				return err
+			}
+
+			if globals.Live != players[next].Name {
+				return apis.NewBadRequestError("Game has already advanced multiple turns.", err)
 			}
 
 			// Check if appeal is valid
