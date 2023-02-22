@@ -14,6 +14,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"time"
 )
 
 func main() {
@@ -592,7 +593,7 @@ func main() {
 			}
 
 			// Retrieving player status
-			current, err := playerIndexByName(player.GetString("name"), players)
+			playerIndex, err := playerIndexByName(player.GetString("name"), players)
 			if err != nil {
 				return err
 			}
@@ -686,7 +687,7 @@ func main() {
 			hand = append(hand, drawn...)
 
 			// Saving card to arrays and setting player state
-			players[current].Cards = len(hand)
+			players[playerIndex].Cards = len(hand)
 			globals.Stacking = false
 
 			if rules.Unlimited {
@@ -732,7 +733,7 @@ func main() {
 			player.Set("hand", handUpdate)
 
 			// Saving state
-			err = saveGame(app, player)
+			err = saveGame(app, game)
 			if err != nil {
 				return err
 			}
@@ -1009,7 +1010,7 @@ func main() {
 			card := hand[index]
 
 			// Retrieving player status
-			current, err := playerIndexByName(player.GetString("name"), players)
+			playerIndex, err := playerIndexByName(player.GetString("name"), players)
 			if err != nil {
 				return err
 			}
@@ -1032,9 +1033,9 @@ func main() {
 			// Play card from inventory to stack
 			hand = append(hand[:index], hand[index+1:]...)
 			stack = append(stack, card)
-			players[current].Cards = len(hand)
+			players[playerIndex].Cards = len(hand)
 			if len(hand) > 1 {
-				players[current].Called = false
+				players[playerIndex].Called = false
 			}
 
 			// If player action isn't pending, assigning next player
@@ -1119,7 +1120,7 @@ func main() {
 			player.Set("hand", handUpdate)
 
 			// Saving state
-			err = saveGame(app, player)
+			err = saveGame(app, game)
 			if err != nil {
 				return err
 			}
@@ -1209,7 +1210,7 @@ func main() {
 			player.Set("hand", handUpdate)
 
 			// Saving state
-			err = saveGame(app, player)
+			err = saveGame(app, game)
 			if err != nil {
 				return err
 			}
@@ -1293,7 +1294,7 @@ func main() {
 			game.Set("stack", stackUpdate)
 
 			// Saving state
-			err = saveGame(app, player)
+			err = saveGame(app, game)
 			if err != nil {
 				return err
 			}
@@ -1329,23 +1330,23 @@ func main() {
 			}
 
 			// Retrieving player status
-			current, err := playerIndexByName(player.GetString("name"), players)
+			playerIndex, err := playerIndexByName(player.GetString("name"), players)
 			if err != nil {
 				return err
 			}
 
 			// Check if player has already called
-			if players[current].Called {
+			if players[playerIndex].Called {
 				return apis.NewBadRequestError("You have already called.", err)
 			}
 
 			// Check if player can call
-			if players[current].Cards <= 2 {
+			if players[playerIndex].Cards <= 2 {
 				return apis.NewBadRequestError("You have too many cards to call.", err)
 			}
 
 			// Set player as called
-			players[current].Called = true
+			players[playerIndex].Called = true
 
 			// Update state
 			playersUpdate, err := playersFromStruct(players)
@@ -1356,7 +1357,7 @@ func main() {
 			game.Set("players", playersUpdate)
 
 			// Saving state
-			err = saveGame(app, player)
+			err = saveGame(app, game)
 			if err != nil {
 				return err
 			}
@@ -1364,104 +1365,102 @@ func main() {
 			return c.JSON(http.StatusOK, Status{Status: "ok"})
 		})
 
-		/*e.Router.POST("/game/appeal", func(c echo.Context) error {
+		e.Router.POST("/game/appeal", func(c echo.Context) error {
 			// Retrieve target user
-			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
+			player, err := getPlayerRecordByToken(app, c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Can't find user.", err)
+				return err
 			}
 
-			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
+			game, err := getGameRecordByCode(app, player.GetString("game"))
 			if err != nil {
-				return apis.NewBadRequestError("User not participating in game.", err)
+				return err
 			}
 
-			var cards []string
-			err = json.Unmarshal([]byte(user.GetString("hand")), &cards)
+			hand, err := handFromPlayer(player)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't get player cards.", err)
+				return err
 			}
 
-			var players []Player
-			err = json.Unmarshal([]byte(game.GetString("players")), &players)
+			players, err := playersFromGame(game)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't get game players.", err)
+				return err
 			}
 
-			var rules Rules
-			err = json.Unmarshal([]byte(game.GetString("rules")), &rules)
+			rules, err := rulesFromGame(game)
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't get game rules.", err)
+				return err
 			}
 
-			var stack []string
-			err = json.Unmarshal([]byte(game.GetString("stack")), &stack)
+			stack, err := stackFromGame(game)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't get game card stack.", err)
+				return err
 			}
 
-			// Checking if player has turn
-			if game.GetString("live") != user.GetString("player") {
-				return apis.NewBadRequestError("It's not the player's turn.", nil)
+			// Retrieve target player
+			target, err := getPlayerRecordByName(app, c.Request().Header.Get("player"))
+			if err != nil {
+				return err
 			}
 
-			// Update called status
-			for i := 0; i < len(players); i++ {
-				if players[i].Name == user.GetString("player") {
-					if players[i].Called {
-						return apis.NewBadRequestError("Player has already called.", err)
-					}
+			// Retrieving target status
+			targetIndex, err := playerIndexByName(target.GetString("name"), players)
+			if err != nil {
+				return err
+			}
 
-					// Draw 2 cards if possible
-					draw := 2
-					for {
-						if rules.Ordered {
-							cards = append(cards, stack[len(stack) - 1])
-							stack = append(stack, stack[1:]...)
-						} else {
-							index := rand.Intn(len(stack) - 2)
-							cards = append(cards, stack[index])
-							stack = append(stack[:index], stack[index+1:]...)
-						}
-						draw--
+			// Check if appeal is valid
+			if players[targetIndex].Called {
+				return apis.NewBadRequestError("Player has already called.", err)
+			}
 
-						if len(stack) > 1 && draw > 0 {
-							break
-						}
-					}
+			// Draw 2 cards if possible
+			draw := 2
+			for {
+				if rules.Ordered {
+					hand = append(hand, stack[len(stack)-1])
+					stack = append(stack, stack[1:]...)
+				} else {
+					index := rand.Intn(len(stack) - 2)
+					hand = append(hand, stack[index])
+					stack = append(stack[:index], stack[index+1:]...)
+				}
+				draw--
 
+				if len(stack) > 1 && draw > 0 {
 					break
 				}
 			}
 
 			// Update state
-			playersUpdate, err := json.Marshal(players)
+			playersUpdate, err := playersFromStruct(players)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't get game players update.", err)
+				return err
 			}
 
-			stackUpdate, err := json.Marshal(stack)
+			stackUpdate, err := stackFromStruct(stack)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't get game stack update.", err)
+				return err
 			}
 
-			cardsUpdate, err := json.Marshal(cards)
+			handUpdate, err := handFromStruct(hand)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't get user cards update.", err)
+				return err
 			}
 
 			game.Set("players", playersUpdate)
 			game.Set("stack", stackUpdate)
-			user.Set("hand", cardsUpdate)
+			target.Set("hand", handUpdate)
 
-			err = app.Dao().SaveRecord(game)
+			// Saving state
+			err = saveGame(app, game)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't update game record.", err)
+				return err
 			}
 
-			err = app.Dao().SaveRecord(user)
+			err = savePlayer(app, target)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't update user record.", err)
+				return err
 			}
 
 			return c.JSON(http.StatusOK, Status{Status: "ok"})
@@ -1469,117 +1468,101 @@ func main() {
 
 		e.Router.POST("/game/switch", func(c echo.Context) error {
 			// Retrieve target user
-			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
+			player, err := getPlayerRecordByToken(app, c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Can't find user.", err)
+				return err
 			}
 
-			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
+			game, err := getGameRecordByCode(app, player.GetString("game"))
 			if err != nil {
-				return apis.NewBadRequestError("User not participating in game.", err)
+				return err
 			}
 
-			var players []Player
-			err = json.Unmarshal([]byte(game.GetString("players")), &players)
+			players, err := playersFromGame(game)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't get game players.", err)
+				return err
 			}
 
-			var rules Rules
-			err = json.Unmarshal([]byte(game.GetString("rules")), &rules)
+			globals, err := globalsFromGame(game)
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't get game rules.", err)
+				return err
+			}
+
+			// Retrieve target player
+			target, err := getPlayerRecordByName(app, c.Request().Header.Get("player"))
+			if err != nil {
+				return err
+			}
+
+			// Retrieving player status
+			playerIndex, err := playerIndexByName(player.GetString("name"), players)
+			if err != nil {
+				return err
+			}
+
+			// Retrieving target status
+			targetIndex, err := playerIndexByName(target.GetString("name"), players)
+			if err != nil {
+				return err
 			}
 
 			// Checking if player has turn
-			if game.GetString("live") != user.GetString("name") {
-				return apis.NewBadRequestError("It's not your turn.", nil)
+			if err := playing(player, globals); err != nil {
+				return err
 			}
 
 			// Checking if player is currently swapping
-			for i := 0; i < len(players); i++ {
-				if players[i].Name == user.GetString("name") {
-					if !players[i].Swapping {
-						return apis.NewBadRequestError("The user is currently not swapping.", nil)
-					} else {
-						break
-					}
-				}
+			if !globals.Swapping {
+				return apis.NewBadRequestError("The user is currently not swapping.", nil)
 			}
 
-			// Redistributing cards
-			player, err := app.Dao().FindFirstRecordByData("players", "name", c.Request().Header.Get("player"))
-			if err != nil {
-				return apis.NewApiError(500, "Couldn't get player.", err)
-			}
-			if player.GetString("game") != user.GetString("game") {
-				return apis.NewBadRequestError("Player in other game.", nil)
-			}
+			// Switch hands
+			hand1 := player.GetString("hand")
+			hand2 := target.GetString("hand")
+			target.Set("hand", hand1)
+			player.Set("hand", hand2)
 
-			// Update hands
-			hand1 := user.GetString("hand")
-			hand2 := player.GetString("hand")
-			player.Set("hand", hand1)
-			user.Set("hand", hand2)
-
-			// Update game cards
-			for i := 0; i < len(players); i++ {
-				if players[i].Name == user.GetString("player") {
-					var count []string
-					err = json.Unmarshal([]byte(hand1), &count)
-					if err != nil {
-						return apis.NewApiError(500, "Couldn't get first hand.", err)
-					}
-
-					players[i].Cards = len(count)
-				}
-				if players[i].Name == user.GetString("name") {
-					var count []string
-					err = json.Unmarshal([]byte(hand2), &count)
-					if err != nil {
-						return apis.NewApiError(500, "Couldn't get second hand.", err)
-					}
-
-					players[i].Cards = len(count)
-				}
-			}
+			// Switch cards
+			cards1 := players[playerIndex].Cards
+			cards2 := players[targetIndex].Cards
+			players[targetIndex].Cards = cards1
+			players[playerIndex].Cards = cards2
 
 			// Finish switching
-			for i := 0; i < len(players); i++ {
-				if players[i].Name == user.GetString("name") {
-					players[i].Swapping = false
-				}
+			globals.Swapping = false
+
+			// Advancing turn
+			next, err := nextPlayer(player.GetString("name"), players, globals)
+			if err != nil {
+				return err
 			}
 
-			// Shifting turn
-			next := nextPlayer(user.GetString("name"), players, rules)
-			if next < 0 {
-				return apis.NewApiError(500, "Couldn't evaluate next player.", err)
-			}
-			players[next].Drawable = true
-			game.Set("live", players[next].Name)
+			// Applying traits for next player
+			globals.Live = players[next].Name
+			globals.Drawable = true
 
 			// Update state
-			playersUpdate, err := json.Marshal(players)
+			playersUpdate, err := playersFromStruct(players)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't get game players update.", err)
+				return err
 			}
 
 			game.Set("players", playersUpdate)
 
-			err = app.Dao().SaveRecord(game)
+			// Saving state
+			err = saveGame(app, game)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't update game record.", err)
+				return err
 			}
 
-			err = app.Dao().SaveRecord(user)
+			err = savePlayer(app, player)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't update user record.", err)
+				return err
 			}
 
-			err = app.Dao().SaveRecord(player)
+			err = savePlayer(app, target)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't update player record.", err)
+				return err
 			}
 
 			return c.JSON(http.StatusOK, Status{Status: "ok"})
@@ -1587,32 +1570,51 @@ func main() {
 
 		e.Router.POST("/game/timeout", func(c echo.Context) error {
 			// Retrieve target user
-			user, err := app.Dao().FindRecordById("players", c.Request().Header.Get("token"))
+			player, err := getPlayerRecordByToken(app, c.Request().Header.Get("token"))
 			if err != nil {
-				return apis.NewBadRequestError("Can't find user.", err)
+				return err
 			}
 
-			game, err := app.Dao().FindRecordById("games", user.GetString("game"))
+			game, err := getGameRecordByCode(app, player.GetString("game"))
 			if err != nil {
-				return apis.NewBadRequestError("User not participating in game.", err)
+				return err
 			}
 
-			var players []Player
-			err = json.Unmarshal([]byte(game.GetString("players")), &players)
+			players, err := playersFromGame(game)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't get game players.", err)
+				return err
 			}
 
-			var rules Rules
-			err = json.Unmarshal([]byte(game.GetString("rules")), &rules)
+			rules, err := rulesFromGame(game)
 			if err != nil {
-				return apis.NewBadRequestError("Couldn't get game rules.", err)
+				return err
 			}
 
-			var stack []string
-			err = json.Unmarshal([]byte(game.GetString("stack")), &stack)
+			stack, err := stackFromGame(game)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't get game card stack.", err)
+				return err
+			}
+
+			globals, err := globalsFromGame(game)
+			if err != nil {
+				return err
+			}
+
+			// Retrieve target player
+			target, err := getPlayerRecordByName(app, c.Request().Header.Get("player"))
+			if err != nil {
+				return err
+			}
+
+			// Retrieving target status
+			targetIndex, err := playerIndexByName(target.GetString("name"), players)
+			if err != nil {
+				return err
+			}
+
+			hand, err := handFromPlayer(target)
+			if err != nil {
+				return err
 			}
 
 			// Checking if timeout has elapsed
@@ -1620,72 +1622,61 @@ func main() {
 				return apis.NewBadRequestError("Timeout hasn't elapsed yet.", nil)
 			}
 
-			// Removing player from game
-			name := ""
-			for i := 0; i < len(players); i++ {
-				if players[i].Name == user.GetString("player") {
-					name = players[i].Name
-					players = append(players[:i], players[i+1:]...)
-					break
-				}
+			// Checking if player has turn
+			if err := playing(target, globals); err != nil {
+				return err
 			}
 
-			if len(name) == 0 {
-				return apis.NewBadRequestError("Player not participating in game.", nil)
-			}
+			// Removing player from game
+			players = append(players[:targetIndex], players[targetIndex+1:]...)
 
 			// Redistributing cards
-			player, err := app.Dao().FindFirstRecordByData("players", "name", name)
-			if err != nil {
-				return apis.NewApiError(500, "Couldn't get player.", err)
-			}
-
-			var cards []string
-			err = json.Unmarshal([]byte(player.GetString("hand")), &cards)
-			if err != nil {
-				return apis.NewApiError(500, "Couldn't get players hand.", err)
-			}
-
-			stack = append(cards, stack...)
+			stack = append(stack, hand...)
 			player.Set("hand", "[{}]")
 
-			// Shifting turn if it was the player's turn
-			if game.GetString("live") == player.GetString("name") {
-				next := nextPlayer(user.GetString("name"), players, rules)
-				if next < 0 {
-					return apis.NewApiError(500, "Couldn't evaluate next player.", err)
-				}
-				players[next].Drawable = true
-				game.Set("live", players[next].Name)
+			// Advancing turn
+			next, err := nextPlayer(player.GetString("name"), players, globals)
+			if err != nil {
+				return err
 			}
+
+			// Applying traits for next player
+			globals.Live = players[next].Name
+			globals.Drawable = true
 
 			// Update state
-			playersUpdate, err := json.Marshal(players)
+			playersUpdate, err := playersFromStruct(players)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't get game players update.", err)
+				return err
 			}
 
-			stackUpdate, err := json.Marshal(stack)
+			globalsUpdate, err := globalsFromStruct(globals)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't get game stack update.", err)
+				return err
+			}
+
+			stackUpdate, err := stackFromStruct(stack)
+			if err != nil {
+				return err
 			}
 
 			game.Set("players", playersUpdate)
+			game.Set("globals", globalsUpdate)
 			game.Set("stack", stackUpdate)
-			player.Set("hand", "[{}]")
 
-			err = app.Dao().SaveRecord(game)
+			// Saving state
+			err = saveGame(app, game)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't update game record.", err)
+				return err
 			}
 
-			err = app.Dao().SaveRecord(player)
+			err = savePlayer(app, target)
 			if err != nil {
-				return apis.NewApiError(500, "Couldn't update player record.", err)
+				return err
 			}
 
 			return c.JSON(http.StatusOK, Status{Status: "ok"})
-		})*/
+		})
 
 		return nil
 	})
