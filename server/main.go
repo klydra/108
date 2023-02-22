@@ -52,7 +52,7 @@ func main() {
 	app.RootCmd.PersistentFlags().StringSliceVar(
 		&corsOrigins,
 		"corsOrigins",
-		[]string{"https://108.cards"},
+		[]string{"https://108.cards", "https://108cards.pages.dev"},
 		"CORS allowed domain origins list",
 	)
 
