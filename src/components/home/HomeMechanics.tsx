@@ -76,7 +76,7 @@ export default function HomeMechanics(props: { theme: CardColor }) {
         <Column>
           <Entry
             title="plus 2"
-            text="If a draw-2-card is played, the next player need´s to draw 2 cards. "
+            text="If a draw-2-card is played, the next player needs to draw 2 cards. "
           >
             <CardFront
               card={{
@@ -98,7 +98,7 @@ export default function HomeMechanics(props: { theme: CardColor }) {
           </Entry>
           <Entry
             title={' "ONE" '}
-            text="If a player only has one card left, he needs to say “ONE” if he get caught, don´t saying it, he need´s to draw 2 cards."
+            text="If a player only has one card left, he needs to say “ONE” if he get caught, don´t saying it, he needs to draw 2 cards."
           >
             <CardFront
               card={{

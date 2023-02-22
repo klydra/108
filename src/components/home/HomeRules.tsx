@@ -12,7 +12,7 @@ export default function HomeRules(props: { theme: CardColor }) {
         <Column>
           <Entry
             title="random cards"
-            text="order cards …..gsfdagfgsafdgasfgdfasgfdgasfg"
+            text="The deck is ordered or not ordered according to how the cards were previously played."
           >
             <div className="h-52">
               <CardBack />
@@ -20,7 +20,7 @@ export default function HomeRules(props: { theme: CardColor }) {
           </Entry>
           <Entry
             title="short match"
-            text="the game ends when the first player plays all his cards"
+            text="The game ends when the first player plays all his cards."
           >
             <CardFront
               card={{
@@ -31,7 +31,7 @@ export default function HomeRules(props: { theme: CardColor }) {
           </Entry>
           <Entry
             title="to good to go"
-            text="if you draw a matching card you can play it or hold it"
+            text="If you draw a matching card you can play it instantly or hold it."
           >
             <CardFront
               card={{
@@ -42,7 +42,7 @@ export default function HomeRules(props: { theme: CardColor }) {
           </Entry>
           <Entry
             title="million cards"
-            text="you can draw as long cards as you didn´t got a matching one"
+            text="You can draw as long cards as you didn´t got a matching one."
           >
             <div className="h-52">
               <CardBack />
@@ -74,7 +74,7 @@ export default function HomeRules(props: { theme: CardColor }) {
           </Entry>
           <Entry
             title="fast, faster, next one"
-            text="If a card is played, and a player has the identical card the player can play the identical card and from him the game continues."
+            text="If a card is played and a player has the identical card, the player can play the identical card instantly and from him the game continues."
           >
             <div className="z-10">
               <CardFront
