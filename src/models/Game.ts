@@ -1,6 +1,5 @@
 type GameType = {
   players: GamePlayer[];
-  live: string;
   globals: GameGlobals;
   rules: GameRules;
   stack: string[];

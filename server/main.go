@@ -347,7 +347,10 @@ func main() {
 						return err
 					}
 
-					handUpdate, err := handFromPlayer(player)
+					handUpdate, err := handFromStruct(hand)
+					if err != nil {
+						return err
+					}
 
 					player.Set("hand", handUpdate)
 
@@ -376,7 +379,7 @@ func main() {
 						return err
 					}
 
-					handUpdate, err := handFromPlayer(player)
+					handUpdate, err := handFromStruct(hand)
 					if err != nil {
 						return err
 					}
@@ -610,45 +613,33 @@ func main() {
 
 			var drawn []string
 
-			if stack[len(stack)-1][0] == 'p' && globals.Drawable {
+			if stack[0][0] == 'p' && globals.Stacking {
 				// Drawing 2 * n cards
-				for i := 1; i > 0; i++ {
-					for j := 0; j < 2; j++ {
-						if rules.Ordered {
-							drawn = append(drawn, resetCard(stack[len(stack)-1]))
-							stack = stack[:len(stack)-2]
-						} else {
-							index := rand.Intn(len(stack)-3) + 1
-							drawn = append(drawn, resetCard(stack[index]))
-							stack = append(stack[:index], stack[index+1:]...)
-						}
-						if len(stack) <= 1 {
-							break
-						}
+				for j := 0; j < 2; j++ {
+					if rules.Ordered {
+						drawn = append(drawn, resetCard(stack[len(stack)-1]))
+						stack = stack[:len(stack)-2]
+					} else {
+						index := rand.Intn(len(stack)-3) + 1
+						drawn = append(drawn, resetCard(stack[index]))
+						stack = append(stack[:index], stack[index+1:]...)
 					}
-
-					if stack[len(stack)-i][0] == 'p' || len(stack) > 1 {
+					if len(stack) <= 1 {
 						break
 					}
 				}
-			} else if stack[len(stack)-1][0] == 'j' && globals.Drawable {
+			} else if stack[0][0] == 'j' && globals.Stacking {
 				// Drawing 4 * n cards
-				for i := 1; i > 0; i++ {
-					for j := 0; j < 4; j++ {
-						if rules.Ordered {
-							drawn = append(drawn, resetCard(stack[len(stack)-1]))
-							stack = stack[:len(stack)-2]
-						} else {
-							index := rand.Intn(len(stack)-3) + 1
-							drawn = append(drawn, resetCard(stack[index]))
-							stack = append(stack[:index], stack[index+1:]...)
-						}
-						if len(stack) <= 1 {
-							break
-						}
+				for j := 0; j < 4; j++ {
+					if rules.Ordered {
+						drawn = append(drawn, resetCard(stack[len(stack)-1]))
+						stack = stack[:len(stack)-2]
+					} else {
+						index := rand.Intn(len(stack)-3) + 1
+						drawn = append(drawn, resetCard(stack[index]))
+						stack = append(stack[:index], stack[index+1:]...)
 					}
-
-					if stack[len(stack)-i][0] == 'j' || len(stack) > 1 {
+					if len(stack) <= 1 {
 						break
 					}
 				}
@@ -689,6 +680,7 @@ func main() {
 			// Saving card to arrays and setting player state
 			players[playerIndex].Cards = len(hand)
 			globals.Stacking = false
+			globals.Drawable = false
 
 			if rules.Unlimited {
 				for j := 0; j < len(drawn); j++ {
@@ -699,7 +691,9 @@ func main() {
 							return err
 						}
 
-						game.Set("live", players[next].Name)
+						globals.Live = players[next].Name
+						globals.Drawable = true
+						globals.Stacking = false
 						break
 					}
 				}
@@ -709,7 +703,10 @@ func main() {
 				if err != nil {
 					return err
 				}
-				game.Set("live", players[next].Name)
+
+				globals.Live = players[next].Name
+				globals.Drawable = true
+				globals.Stacking = false
 			}
 
 			// Update state
@@ -723,6 +720,11 @@ func main() {
 				return err
 			}
 
+			globalsUpdate, err := globalsFromStruct(globals)
+			if err != nil {
+				return err
+			}
+
 			handUpdate, err := handFromStruct(hand)
 			if err != nil {
 				return err
@@ -730,6 +732,7 @@ func main() {
 
 			game.Set("players", playersUpdate)
 			game.Set("stack", stackUpdate)
+			game.Set("globals", globalsUpdate)
 			player.Set("hand", handUpdate)
 
 			// Saving state
@@ -815,9 +818,6 @@ func main() {
 			if !globals.Drawable && stack[0][1] == 'd' && (stack[0][0] == 'w' || stack[0][0] == 'j') {
 				// Check if currently wishing
 				return apis.NewBadRequestError("You are currently wishing.", nil)
-			} else if stack[0][0] != card[0] && stack[0][1] != card[1] {
-				// Checking if card is wish or if previous card has matching color
-				return apis.NewBadRequestError("card not matching.", nil)
 			}
 
 			// Checking if previous card requires draw / stack
@@ -849,6 +849,11 @@ func main() {
 				}
 			}
 
+			// Checking if card is wish or if previous card has matching color
+			if card[0] != 'w' && card[0] != 'j' && stack[0][0] != card[0] && stack[0][1] != card[1] {
+				return apis.NewBadRequestError("Card not matching.", nil)
+			}
+
 			// Applying direction change if needed
 			if card[0] == 'd' {
 				globals.Direction = !globals.Direction
@@ -856,12 +861,17 @@ func main() {
 
 			// Play card onto stack
 			hand = append(hand[:index], hand[index+1:]...)
-			stack = append(stack, card)
+			stack = append([]string{card}, stack...)
 			players[playerIndex].Cards = len(hand)
 
 			// Update called state
 			if len(hand) > 1 {
 				players[playerIndex].Called = false
+			}
+
+			// Set stacking state
+			if card[0] == 'j' || card[0] == 'p' {
+				globals.Stacking = true
 			}
 
 			// Set swapping state
@@ -1038,7 +1048,7 @@ func main() {
 
 			// Play card from inventory to stack
 			hand = append(hand[:index], hand[index+1:]...)
-			stack = append(stack, card)
+			stack = append([]string{card}, stack...)
 			players[playerIndex].Cards = len(hand)
 			if len(hand) > 1 {
 				players[playerIndex].Called = false
@@ -1296,8 +1306,14 @@ func main() {
 				return err
 			}
 
+			globalsUpdate, err := globalsFromStruct(globals)
+			if err != nil {
+				return err
+			}
+
 			game.Set("players", playersUpdate)
 			game.Set("stack", stackUpdate)
+			game.Set("globals", globalsUpdate)
 
 			// Saving state
 			err = saveGame(app, game)
@@ -1347,7 +1363,7 @@ func main() {
 			}
 
 			// Check if player can call
-			if players[playerIndex].Cards <= 2 {
+			if players[playerIndex].Cards > 2 {
 				return apis.NewBadRequestError("You have too many cards to call.", err)
 			}
 

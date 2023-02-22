@@ -33,9 +33,9 @@ func defaultGlobalsStruct() Globals {
 	return Globals{
 		Live:      "",
 		Direction: true,
+		Drawable:  true,
 		Stacking:  false,
 		Swapping:  false,
-		Drawable:  false,
 	}
 }
 
@@ -63,8 +63,8 @@ func defaultJson() string {
 // structs to strings
 // ---------------------------------------------------------------
 
-func handFromStruct(stack []string) (string, *apis.ApiError) {
-	marshalled, err := json.Marshal(stack)
+func handFromStruct(hand []string) (string, *apis.ApiError) {
+	marshalled, err := json.Marshal(hand)
 	if err != nil {
 		return "", apis.NewApiError(500, "Can't parse hand.", err)
 	}

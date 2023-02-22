@@ -12,7 +12,7 @@ export default function LobbyStart(props: { session: SessionType }) {
   return (
     <div className="h-full max-h-full max-w-[12rem] flex flex-col flex-grow flex-wrap justify-center items-center gap-4">
       <Button
-        disabled={props.session.me.host || props.session.enemies.length === 0}
+        disabled={!props.session.me.host || props.session.enemies.length === 0}
         uppercase
         className={
           "h-24 w-24 rounded-[10rem] text-card-accent hover:bg-background bg-background"

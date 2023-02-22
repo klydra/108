@@ -77,8 +77,8 @@ func hosting(player *models.Record, players []Player) *apis.ApiError {
 }
 
 func playing(player *models.Record, globals Globals) *apis.ApiError {
-	if globals.Live == player.GetString("name") {
-		return apis.NewBadRequestError("You are not the host.", nil)
+	if globals.Live != player.GetString("name") {
+		return apis.NewBadRequestError("It's not your turn.", nil)
 	}
 	return nil
 }

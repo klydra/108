@@ -42,7 +42,7 @@ export function sessionConstruct(player: PlayerType, game: GameType) {
       hand: player.hand,
       called: me?.called ?? false,
       host: game.players[0].name === player.name,
-      live: me?.name === game.live,
+      live: me?.name === game.globals.live,
     },
     enemies: enemies.map((enemy) => {
       return {
@@ -50,7 +50,7 @@ export function sessionConstruct(player: PlayerType, game: GameType) {
         avatar: avatar(enemy.name),
         cards: enemy.cards,
         called: enemy.called,
-        live: enemy.name === game.live,
+        live: enemy.name === game.globals.live,
       };
     }),
     order: game.players.map((item) => item.name),
@@ -89,7 +89,7 @@ export function patchGame(game: GameType, session: SessionType) {
       ...session.me,
       called: me?.called ?? false,
       host: game.players[0].name === (me?.name ?? session.me.name),
-      live: me?.name === game.live,
+      live: me?.name === game.globals.live,
     },
     enemies: enemies.map((enemy) => {
       return {
@@ -97,7 +97,7 @@ export function patchGame(game: GameType, session: SessionType) {
         avatar: avatar(enemy.name),
         cards: enemy.cards,
         called: enemy.called,
-        live: enemy.name === game.live,
+        live: enemy.name === game.globals.live,
       };
     }),
     order: game.players.map((item) => item.name),
