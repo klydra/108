@@ -33,16 +33,16 @@ function avatar(name: string) {
 
 export function sessionConstruct(player: PlayerType, game: GameType) {
   const me = game.players.find((item) => item.name === player.name);
-  const enemies = game.players.filter((item) => item.name !== player.name);
+  const enemies = game.players.filter((item) => item.name !== me!.name);
 
   return {
     me: {
       name: player.name,
       avatar: avatar(player.name),
       hand: player.hand,
-      called: me?.called ?? false,
+      called: me!.called ?? false,
       host: game.players[0].name === player.name,
-      live: me?.name === game.globals.live,
+      live: me!.name === game.globals.live,
     },
     enemies: enemies.map((enemy) => {
       return {
@@ -77,44 +77,4 @@ export function sessionLast(session: SessionType) {
     (item) => item === session.globals.live
   );
   return session.order[current !== 0 ? current - 1 : session.order.length - 1];
-}
-
-export function patchGame(game: GameType, session: SessionType) {
-  const me = game.players.find((item) => item.name === session.me.name);
-  const enemies = game.players.filter((item) => item.name !== session.me.name);
-
-  return {
-    ...session,
-    me: {
-      ...session.me,
-      called: me?.called ?? false,
-      host: game.players[0].name === (me?.name ?? session.me.name),
-      live: me?.name === game.globals.live,
-    },
-    enemies: enemies.map((enemy) => {
-      return {
-        name: enemy.name,
-        avatar: avatar(enemy.name),
-        cards: enemy.cards,
-        called: enemy.called,
-        live: enemy.name === game.globals.live,
-      };
-    }),
-    order: game.players.map((item) => item.name),
-    globals: game.globals,
-    rules: game.rules,
-    stack: game.stack,
-  };
-}
-
-export function patchPlayer(player: PlayerType, session: SessionType) {
-  return {
-    ...session,
-    me: {
-      ...session.me,
-      name: player.name,
-      avatar: avatar(player.name),
-      hand: player.hand,
-    },
-  };
 }

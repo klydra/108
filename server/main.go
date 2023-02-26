@@ -429,8 +429,17 @@ func main() {
 				return err
 			}
 
-			game, err := getGameRecordByCode(app, player.GetString("name"))
+			game, err := getGameRecordByCode(app, player.GetString("game"))
 			if err != nil {
+				return err
+			}
+
+			players, err := playersFromGame(game)
+			if err != nil {
+				return err
+			}
+
+			if err := hosting(player, players); err != nil {
 				return err
 			}
 
@@ -880,7 +889,7 @@ func main() {
 			}
 
 			// If player action isn't pending, assigning next player
-			if card[0] != 'j' && card[0] != 'w' && (card[0] != '7' && !rules.Swap) {
+			if card[0] != 'j' && card[0] != 'w' && (card[0] != '7' || !rules.Swap) {
 				next, err := nextPlayer(player.GetString("name"), players, globals)
 				if err != nil {
 					return nil
@@ -896,7 +905,7 @@ func main() {
 
 				// Applying traits for next player
 				globals.Drawable = true
-				if card[0] == 'p' {
+				if card[0] == 'p' { // TODO: Check stacking rule
 					globals.Stacking = true
 				} else {
 					globals.Stacking = false
@@ -1584,7 +1593,13 @@ func main() {
 				return err
 			}
 
+			globalsUpdate, err := globalsFromStruct(globals)
+			if err != nil {
+				return err
+			}
+
 			game.Set("players", playersUpdate)
+			game.Set("globals", globalsUpdate)
 
 			// Saving state
 			err = saveGame(app, game)

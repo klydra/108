@@ -60,10 +60,10 @@ export default function LobbySettings(props: { session: SessionType }) {
         >
           <Switch
             color="gray"
-            checked={props.session.rules.unlimited}
+            checked={props.session.rules.bottomless}
             onClick={() =>
               rules(props.session, {
-                unlimited: !props.session.rules.unlimited,
+                bottomless: !props.session.rules.bottomless,
               })
             }
           />
@@ -192,7 +192,7 @@ async function rules(session: SessionType, override: object) {
   } else {
     showNotification({
       autoClose: API_NOTIFICATION_GAME_TIMEOUT,
-      message: "HomeRules saved.",
+      message: "Rules saved.",
       color: "violet",
       icon: <Gavel />,
     });

@@ -80,6 +80,7 @@ export default function RowTop(props: { session: SessionType; scale: number }) {
           {[...Array(enemy!.cards)].map((_, index) => {
             return (
               <div
+                key={index}
                 style={{
                   zIndex: index,
                   maxWidth: (1 / enemy!.cards) * props.scale + "rem",

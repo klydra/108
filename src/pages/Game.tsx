@@ -9,13 +9,8 @@ import {
 } from "../api/API";
 import { NavigateFunction } from "react-router";
 import { showNotification } from "@mantine/notifications";
-import { Code, PlayArrow, Wifi } from "@mui/icons-material";
-import {
-  patchGame,
-  patchPlayer,
-  sessionConstruct,
-  SessionType,
-} from "../models/Session";
+import { PlayArrow, Wifi } from "@mui/icons-material";
+import { sessionConstruct } from "../models/Session";
 import LobbyPlayers from "../components/game/lobby/LobbyPlayers";
 import LobbySettings from "../components/game/lobby/LobbySettings";
 import LobbyStart from "../components/game/lobby/LobbyStart";
@@ -24,6 +19,7 @@ import SessionCall from "../components/game/session/SessionCall";
 import StackDraw from "../components/game/session/stacks/StackDraw";
 import StackPlay from "../components/game/session/stacks/StackPlay";
 import SessionWish from "../components/game/session/SessionWish";
+import SessionBackground from "../components/game/SessionBackground";
 
 interface GameProps {
   game: string;
@@ -31,7 +27,8 @@ interface GameProps {
 }
 
 interface GameState {
-  session: SessionType | undefined;
+  player: PlayerType | undefined;
+  game: GameType | undefined;
   animator: AnimatorType;
 }
 
@@ -42,7 +39,8 @@ export default class Game extends Component<GameProps, GameState> {
     super(props);
 
     this.state = {
-      session: undefined,
+      player: undefined,
+      game: undefined,
       animator: {
         appear: false,
         disappear: false,
@@ -90,47 +88,25 @@ export default class Game extends Component<GameProps, GameState> {
 
     await this.pocketbase
       .collection("players")
-      .subscribe(localStorage.getItem("token")!, (change) => {
-        const player = change.record as Object as PlayerType;
-
-        if (this.state.session)
-          this.setState({ session: patchPlayer(player, this.state.session!) });
-        else
-          showNotification({
-            autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
-            message: "Failed to patch players update.",
-            color: "red",
-            icon: <Code />,
-          });
-      });
+      .subscribe(localStorage.getItem("token")!, (change) =>
+        this.setState({ player: change.record as Object as PlayerType })
+      );
 
     await this.pocketbase
       .collection("games")
-      .subscribe(this.props.game, (change) => {
-        const game = change.record as Object as GameType;
+      .subscribe(this.props.game, (change) =>
+        this.setState({ game: change.record as Object as GameType })
+      );
 
-        if (this.state.session)
-          this.setState({ session: patchGame(game, this.state.session!) });
-        else
-          showNotification({
-            autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
-            message: "Failed to patch game update.",
-            color: "red",
-            icon: <Code />,
-          });
-      });
+    const player = (await this.pocketbase
+      .collection("players")
+      .getOne(localStorage.getItem("token")!)) as Object as PlayerType;
 
-    if (!this.state.session) {
-      const player = (await this.pocketbase
-        .collection("players")
-        .getOne(localStorage.getItem("token")!)) as Object as PlayerType;
+    const game = (await this.pocketbase
+      .collection("games")
+      .getOne(this.props.game)) as Object as GameType;
 
-      const game = (await this.pocketbase
-        .collection("games")
-        .getOne(this.props.game)) as Object as GameType;
-
-      this.setState({ session: sessionConstruct(player, game) });
-    }
+    this.setState({ player, game });
 
     showNotification({
       autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
@@ -153,8 +129,8 @@ export default class Game extends Component<GameProps, GameState> {
     prevState: Readonly<GameState>,
     __?: any
   ) {
-    if (prevState.session && this.state.session) {
-      if (prevState.session!.stack.length < this.state.session!.stack.length)
+    if (prevState.game && this.state.game) {
+      if (prevState.game!.stack.length < this.state.game!.stack.length)
         this.setState({
           animator: {
             appear: !this.state.animator.appear,
@@ -162,7 +138,7 @@ export default class Game extends Component<GameProps, GameState> {
           },
         });
 
-      if (prevState.session!.stack.length > this.state.session!.stack.length)
+      if (prevState.game!.stack.length > this.state.game!.stack.length)
         this.setState({
           animator: {
             appear: this.state.animator.appear,
@@ -172,9 +148,11 @@ export default class Game extends Component<GameProps, GameState> {
     }
 
     if (
-      !prevState.session?.me.live &&
-      this.state.session &&
-      this.state.session.me.live
+      this.state.player &&
+      prevState.game?.globals.live &&
+      this.state.game?.globals.live &&
+      this.state.player.name !== prevState.game!.globals.live &&
+      this.state.player.name === this.state.game!.globals.live
     )
       showNotification({
         autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
@@ -185,34 +163,27 @@ export default class Game extends Component<GameProps, GameState> {
   }
 
   render() {
-    console.log(this.state.session);
-    console.log(this.state.animator);
+    if (!this.state.player || !this.state.game) return <SessionBackground />;
+
+    const session = sessionConstruct(this.state.player, this.state.game);
+    console.log(session);
 
     return (
       <>
-        <div className="absolute flex justify-center items-center bg-background h-[100vh] w-[100vw] p-[5%]">
-          <div className="bg-table-background h-full w-full rounded-2xl drop-shadow-[0_5px_5px_rgba(255,255,255,0.25)] shadow-card-yellow"></div>
-        </div>
-
-        {!this.state.session ? null : this.state.session.globals.live !== "" ? (
+        <SessionBackground />
+        {session.globals.live !== "" ? (
           <>
-            <SessionRows session={this.state.session!} />
-            <SessionCall session={this.state.session!} />
-            <StackDraw
-              session={this.state.session!}
-              animator={this.state.animator}
-            />
-            <StackPlay
-              session={this.state.session!}
-              animator={this.state.animator}
-            />
-            <SessionWish session={this.state.session!} />
+            <SessionRows session={session!} />
+            <SessionCall session={session!} />
+            <StackDraw session={session!} animator={this.state.animator} />
+            <StackPlay session={session!} animator={this.state.animator} />
+            <SessionWish session={session!} />
           </>
         ) : (
           <div className="px-[5%] py-[8%] h-[100vh] w-[100vw] flex flex-row fixed justify-evenly items-center gap-x-[1.5rem]">
-            <LobbyPlayers session={this.state.session} />
-            <LobbySettings session={this.state.session} />
-            <LobbyStart session={this.state.session} />
+            <LobbyPlayers session={session} />
+            <LobbySettings session={session} />
+            <LobbyStart session={session} />
           </div>
         )}
       </>

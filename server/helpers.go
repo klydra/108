@@ -29,29 +29,24 @@ func playerIndexByName(name string, players []Player) (int, *apis.ApiError) {
 }
 
 func nextPlayer(name string, players []Player, globals Globals) (int, *apis.ApiError) {
-	if globals.Direction {
-		for i := 0; i < len(players); i++ {
-			if players[i].Name == name {
-				if i == len(players)-1 {
-					return 0, nil
-				} else {
-					return i + 1, nil
-				}
-			}
-		}
-	} else {
-		for i := len(players) - 1; i >= 0; i-- {
-			if players[i].Name == name {
-				if i == 0 {
-					return len(players) - 1, nil
-				} else {
-					return i - 1, nil
-				}
-			}
-		}
+	index, err := playerIndexByName(name, players)
+	if err != nil {
+		return -1, nil
 	}
 
-	return -1, apis.NewApiError(500, "Could not evaluate next player.", nil)
+	if globals.Direction {
+		if index == len(players)-1 {
+			return 0, nil
+		} else {
+			return index + 1, nil
+		}
+	} else {
+		if index == 0 {
+			return len(players) - 1, nil
+		} else {
+			return index - 1, nil
+		}
+	}
 }
 
 func resetCard(card string) string {

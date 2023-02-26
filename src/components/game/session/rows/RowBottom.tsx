@@ -21,6 +21,7 @@ export default function RowBottom(props: {
 
         return (
           <div
+            key={typeToCode(card) + index}
             style={{
               transform:
                 "rotate(" +
@@ -34,7 +35,6 @@ export default function RowBottom(props: {
             }}
           >
             <div
-              key={typeToCode(card) + index}
               className="cursor-pointer hover:-translate-y-3 hover:scale-110 duration-200 w-fit ease-out"
               onClick={async () => {
                 const play = await gamePlay(typeToCode(card));

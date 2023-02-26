@@ -26,6 +26,7 @@ type GameRules = {
   swap: boolean;
   throw: boolean;
   unlimited: boolean;
+  bottomless: boolean;
   ordered: boolean;
   hold: boolean;
   king: boolean;

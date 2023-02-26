@@ -28,16 +28,17 @@ type Globals struct {
 }
 
 type Rules struct {
-	Count     int  `json:"count" xml:"count"`         // Number of cards every player gets at start
-	Stack2    bool `json:"stack2" xml:"stack2"`       // Draw 2 cards are stackable
-	Stack4    bool `json:"stack4" xml:"stack4"`       // Draw 4 cards are stackable
-	Swap      bool `json:"swap" xml:"swap"`           // LobbyPlayers selects who to swap hands with when a 7 is played
-	Throw     bool `json:"throw" xml:"throw"`         // LobbyPlayers can throw identical cards in anytime
-	Unlimited bool `json:"unlimited" xml:"unlimited"` // LobbyPlayers draw until card is playable
-	Ordered   bool `json:"ordered" xml:"ordered"`     // LobbyPlayers draw from bottom of stack
-	Hold      bool `json:"hold" xml:"hold"`           // LobbyPlayers can hold matching card after drawn
-	King      bool `json:"king" xml:"king"`           // Game ends when the first player is finished
-	Timeout   int  `json:"timeout" xml:"timeout"`     // Time each player has to take his turn (seconds)
+	Count      int  `json:"count" xml:"count"`           // Number of cards every player gets at start
+	Stack2     bool `json:"stack2" xml:"stack2"`         // Draw 2 cards are stackable
+	Stack4     bool `json:"stack4" xml:"stack4"`         // Draw 4 cards are stackable
+	Swap       bool `json:"swap" xml:"swap"`             // Players select who to swap hands with when a 7 is played
+	Throw      bool `json:"throw" xml:"throw"`           // Players can throw identical cards in anytime
+	Unlimited  bool `json:"unlimited" xml:"unlimited"`   // Players draw until card is playable
+	Ordered    bool `json:"ordered" xml:"ordered"`       // Players draw from bottom of stack
+	Bottomless bool `json:"bottomless" xml:"bottomless"` // There is no deck
+	Hold       bool `json:"hold" xml:"hold"`             // Players can hold matching card after drawn
+	King       bool `json:"king" xml:"king"`             // Game ends when the first player is finished
+	Timeout    int  `json:"timeout" xml:"timeout"`       // Time each player has to take his turn (seconds)
 }
 
 var DECK = []string{
