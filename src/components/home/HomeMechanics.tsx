@@ -61,17 +61,6 @@ export default function HomeMechanics(props: { theme: CardColor }) {
               }}
             />
           </Entry>
-          <Entry
-            title="rotate"
-            text="If a rotate card is played, the direction of the game is being swapped."
-          >
-            <CardFront
-              card={{
-                face: CardFace.DIRECTION_CHANGE,
-                color: props.theme,
-              }}
-            />
-          </Entry>
         </Column>
         <Column>
           <Entry
@@ -103,6 +92,17 @@ export default function HomeMechanics(props: { theme: CardColor }) {
             <CardFront
               card={{
                 face: CardFace.NUMBER_1,
+                color: props.theme,
+              }}
+            />
+          </Entry>
+          <Entry
+            title="rotate"
+            text="If a rotate card is played, the direction of the game is being swapped."
+          >
+            <CardFront
+              card={{
+                face: CardFace.DIRECTION_CHANGE,
                 color: props.theme,
               }}
             />

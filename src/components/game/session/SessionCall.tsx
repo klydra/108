@@ -6,11 +6,14 @@ import { SettingsOutlined } from "@mui/icons-material";
 import React from "react";
 
 export default function SessionCall(props: { session: SessionType }) {
+  const callable =
+    !props.session.me.called &&
+    ((props.session.me.hand.length === 2 && props.session.me.live) ||
+      props.session.me.hand.length === 1);
+
   return (
     <div className="fixed flex h-[12.5%] right-[80%] left-[10%] bottom-[6%] justify-center items-center">
-      {props.session.me.hand.length === 2 &&
-      !props.session.me.called &&
-      props.session.me.live ? (
+      {callable ? (
         <Button
           uppercase
           className={

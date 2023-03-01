@@ -18,8 +18,7 @@ export default function RowTop(props: { session: SessionType; scale: number }) {
     ? props.session.enemies[props.session.enemies.length === 1 ? 0 : 2]
     : null;
   const callable = full
-    ? enemy!.live &&
-      !enemy!.called &&
+    ? !enemy!.called &&
       enemy!.cards < 2 &&
       enemy!.name === sessionLast(props.session)
     : null;

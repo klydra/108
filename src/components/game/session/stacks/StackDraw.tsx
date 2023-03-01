@@ -13,7 +13,7 @@ export default function StackDraw(props: {
     <div className="fixed flex inset-y-1/2 left-[37.5%] right-[50%] inset-y-[42%] justify-center items-center">
       <div
         key={props.animator.disappear.toString()}
-        className="cursor-pointer h-full absolute z-10"
+        className="cursor-pointer min-h-[15rem] h-60 absolute z-10"
         onClick={async () => {
           const play = await gameDraw();
           if (play["code"] !== 200) {
@@ -28,7 +28,9 @@ export default function StackDraw(props: {
       >
         <DisappearCard />
       </div>
-      <CardBack />
+      <div className="min-h-[14rem] h-60">
+        <CardBack />
+      </div>
     </div>
   );
 }
@@ -39,7 +41,7 @@ function DisappearCard() {
 
   return (
     <div
-      className="h-full duration-700 ease-out aria-disabled:scale-[125%] aria-disabled:opacity-0"
+      className="min-h-[15rem] h-60 duration-700 ease-out aria-disabled:scale-[125%] aria-disabled:opacity-0"
       aria-disabled={disappear}
     >
       <CardBack />

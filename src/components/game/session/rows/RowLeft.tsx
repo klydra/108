@@ -19,8 +19,7 @@ export default function RowLeft(props: {
     props.session.enemies.length === 2 || props.session.enemies.length === 3;
   const enemy = full ? props.session.enemies[0] : null;
   const callable = full
-    ? enemy!.live &&
-      !enemy!.called &&
+    ? !enemy!.called &&
       enemy!.cards < 2 &&
       enemy!.name === sessionLast(props.session)
     : null;

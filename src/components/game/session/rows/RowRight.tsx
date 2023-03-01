@@ -19,8 +19,7 @@ export default function RowRight(props: {
     props.session.enemies.length === 2 || props.session.enemies.length === 3;
   const enemy = full ? props.session.enemies[1] : null;
   const callable = full
-    ? enemy!.live &&
-      !enemy!.called &&
+    ? !enemy!.called &&
       enemy!.cards < 2 &&
       enemy!.name === sessionLast(props.session)
     : null;

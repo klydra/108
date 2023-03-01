@@ -25,6 +25,7 @@ export default function LobbySettings(props: { session: SessionType }) {
           text="number of cards that are distributed to everyone"
         >
           <NumberInput
+            disabled={!props.session.me.host}
             value={props.session.rules.count}
             defaultValue={7}
             placeholder="7"
@@ -44,6 +45,7 @@ export default function LobbySettings(props: { session: SessionType }) {
           text="Cards drawn, given, etc. are taken from a random position in the stack."
         >
           <Switch
+            disabled={!props.session.me.host}
             color="gray"
             checked={props.session.rules.ordered}
             onClick={() =>
@@ -59,6 +61,7 @@ export default function LobbySettings(props: { session: SessionType }) {
           text="There is no cards deck. Every card drawn, given, etc. is purely random."
         >
           <Switch
+            disabled={!props.session.me.host}
             color="gray"
             checked={props.session.rules.bottomless}
             onClick={() =>
@@ -74,6 +77,7 @@ export default function LobbySettings(props: { session: SessionType }) {
           text="The game ends when the first player has played out all their cards."
         >
           <Switch
+            disabled={!props.session.me.host}
             color="gray"
             checked={props.session.rules.king}
             onClick={() =>
@@ -89,6 +93,7 @@ export default function LobbySettings(props: { session: SessionType }) {
           text="If you draw a matching card you choose to play it instantly or hold onto it."
         >
           <Switch
+            disabled={!props.session.me.host}
             color="gray"
             checked={props.session.rules.hold}
             onClick={() =>
@@ -104,6 +109,7 @@ export default function LobbySettings(props: { session: SessionType }) {
           text="You need to draw until you get a matching card."
         >
           <Switch
+            disabled={!props.session.me.host}
             color="gray"
             checked={props.session.rules.unlimited}
             onClick={() =>
@@ -119,6 +125,7 @@ export default function LobbySettings(props: { session: SessionType }) {
           text="Draw-2 cards are stackable."
         >
           <Switch
+            disabled={!props.session.me.host}
             color="gray"
             checked={props.session.rules.stack2}
             onClick={() =>
@@ -134,6 +141,7 @@ export default function LobbySettings(props: { session: SessionType }) {
           text="Draw-4 cards are stackable."
         >
           <Switch
+            disabled={!props.session.me.host}
             color="gray"
             checked={props.session.rules.stack4}
             onClick={() =>
@@ -149,6 +157,7 @@ export default function LobbySettings(props: { session: SessionType }) {
           text="If a 7 is played, the player can choose one opponent to swap cards with."
         >
           <Switch
+            disabled={!props.session.me.host}
             color="gray"
             checked={props.session.rules.swap}
             onClick={() =>
@@ -164,6 +173,7 @@ export default function LobbySettings(props: { session: SessionType }) {
           text="If a card is played and a player has the identical card, they may choose to throw it in, even if it isn't their turn. The game will then continue from the player after them."
         >
           <Switch
+            disabled={!props.session.me.host}
             color="gray"
             checked={props.session.rules.throw}
             onClick={() =>

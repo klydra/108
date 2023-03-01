@@ -48,14 +48,6 @@ export default function HomeRules(props: { theme: CardColor }) {
               }}
             />
           </Entry>
-          <Entry
-            title="million cards"
-            text="You need to draw until you get a matching card."
-          >
-            <div className="h-52">
-              <CardBack />
-            </div>
-          </Entry>
         </Column>
         <Column>
           <Entry
@@ -99,6 +91,14 @@ export default function HomeRules(props: { theme: CardColor }) {
                   color: props.theme,
                 }}
               />
+            </div>
+          </Entry>
+          <Entry
+            title="million cards"
+            text="You need to draw until you get a matching card."
+          >
+            <div className="h-52">
+              <CardBack />
             </div>
           </Entry>
         </Column>
