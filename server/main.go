@@ -515,14 +515,14 @@ func main() {
 
 					game.Set("globals", globalsUpdated)
 				}
-
-				// Remove player from ongoing game
-				index, err := playerIndexByName(player.GetString("name"), players)
-				if err != nil {
-					return err
-				}
-				players = append(players[:index], players[index+1:]...)
 			}
+
+			// Remove player from ongoing game
+			index, err := playerIndexByName(player.GetString("name"), players)
+			if err != nil {
+				return err
+			}
+			players = append(players[:index], players[index+1:]...)
 
 			// Save players to game
 			playersUpdated, err := playersFromStruct(players)

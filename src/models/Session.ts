@@ -49,7 +49,7 @@ export function sessionConstruct(player: PlayerType, game: GameType) {
     enemies: enemies.map((enemy) => {
       let spot =
         game.players.findIndex((item) => item.name === enemy.name) - offset;
-      spot = spot > 0 ? spot : spot + game.players.length + offset - 1;
+      spot = spot > 0 ? spot : spot + game.players.length;
 
       return {
         name: enemy.name,
