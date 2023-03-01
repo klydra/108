@@ -160,6 +160,22 @@ export default class Game extends Component<GameProps, GameState> {
         color: "violet",
         icon: <PlayArrow />,
       });
+
+    if (
+      this.state.game &&
+      prevState.game &&
+      this.state.game.globals.live === "" &&
+      prevState.game.globals.live !== ""
+    )
+      showNotification({
+        autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
+        message:
+          "The game has ended. Congratulations to the winner" +
+          (this.state.game.rules.king ? "" : "s") +
+          "!",
+        color: "violet",
+        icon: <PlayArrow />,
+      });
   }
 
   render() {

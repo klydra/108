@@ -5,6 +5,7 @@ import { showNotification } from "@mantine/notifications";
 import { PlayArrow } from "@mui/icons-material";
 import CardFront from "../../../card/front/CardFront";
 import React from "react";
+import { calledAvatar } from "../SessionRows";
 
 export default function RowBottom(props: {
   session: SessionType;
@@ -60,13 +61,16 @@ export default function RowBottom(props: {
         <div
           className="h-24 w-24 rounded-xl overflow-hidden absolute z-10"
           dangerouslySetInnerHTML={{
-            __html: props.session.me.avatar,
+            __html: props.session.me.called
+              ? calledAvatar(props.session.me.avatar)
+              : props.session.me.avatar,
           }}
         ></div>
         <div
           className="m-2 h-20 w-20 rounded-xl bg-contrast duration-300 absolute animate-ping"
           style={{
             display: props.session.me.live ? "" : "none",
+            backgroundColor: props.session.me.called ? "gold" : "",
           }}
         ></div>
       </div>

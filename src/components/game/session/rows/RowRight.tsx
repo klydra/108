@@ -7,7 +7,7 @@ import {
 import { showNotification } from "@mantine/notifications";
 import { SwapHoriz } from "@mui/icons-material";
 import React from "react";
-import { EnemyCardRotated } from "../SessionRows";
+import { calledAvatar, EnemyCardRotated } from "../SessionRows";
 
 export default function RowRight(props: {
   session: SessionType;
@@ -17,7 +17,11 @@ export default function RowRight(props: {
 
   const full =
     props.session.enemies.length === 2 || props.session.enemies.length === 3;
-  const enemy = full ? props.session.enemies[1] : null;
+  const enemy = full
+    ? props.session.enemies.find(
+        (item) => item.spot === (props.session.enemies.length === 2 ? 2 : 3)
+      )
+    : null;
   const callable = full
     ? !enemy!.called &&
       enemy!.cards < 2 &&
@@ -80,14 +84,22 @@ export default function RowRight(props: {
               <div
                 className="h-20 w-20 rounded-xl overflow-hidden absolute z-10 rotate-180"
                 dangerouslySetInnerHTML={{
-                  __html: enemy!.avatar,
+                  __html: enemy!.called
+                    ? calledAvatar(enemy!.avatar)
+                    : enemy!.avatar,
                 }}
               ></div>
               <div
                 className="m-2 h-16 w-16 rounded-xl bg-contrast duration-300 absolute animate-ping"
                 style={{
                   display: enemy!.live || swapping || callable! ? "" : "none",
-                  backgroundColor: swapping ? "orange" : callable! ? "red" : "",
+                  backgroundColor: enemy!.called
+                    ? "gold"
+                    : swapping
+                    ? "orange"
+                    : callable!
+                    ? "red"
+                    : "",
                 }}
               ></div>
             </div>

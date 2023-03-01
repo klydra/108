@@ -931,7 +931,7 @@ func main() {
 
 				// Check how many players are still playing
 				for i := 0; i < len(players); i++ {
-					if players[0].Cards > 0 {
+					if players[i].Cards > 0 {
 						playing++
 					}
 					if playing > 1 {
@@ -1115,7 +1115,7 @@ func main() {
 
 				// Check how many players are still playing
 				for i := 0; i < len(players); i++ {
-					if players[0].Cards > 0 {
+					if players[i].Cards > 0 {
 						playing++
 					}
 					if playing > 1 {

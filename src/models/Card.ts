@@ -38,6 +38,8 @@ export type CardType = {
 };
 
 function codeToFace(card: string) {
+  if (card.length <= 0) return CardFace.NUMBER_0;
+
   switch (card.charAt(0)) {
     default:
     case "0":
@@ -74,6 +76,8 @@ function codeToFace(card: string) {
 }
 
 function codeToColor(card: string) {
+  if (card.length <= 1) return CardColor.DARK;
+
   switch (card.charAt(1)) {
     default:
     case "d":
@@ -103,7 +107,7 @@ export function codeToType(card: string) {
   return {
     face,
     color,
-    order: Object.keys(CardColor).length * colorOrder + faceOrder,
+    order: Object.keys(CardFace).length * colorOrder + faceOrder,
   } as CardType;
 }
 

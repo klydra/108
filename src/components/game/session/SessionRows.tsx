@@ -49,3 +49,7 @@ export function EnemyCardRotated() {
     </div>
   );
 }
+
+export function calledAvatar(avatar: string) {
+  return avatar.replaceAll('fill="#ffffff"', 'fill="gold"');
+}

@@ -7,7 +7,7 @@ import {
 import { showNotification } from "@mantine/notifications";
 import { SwapHoriz } from "@mui/icons-material";
 import React from "react";
-import { EnemyCard } from "../SessionRows";
+import { calledAvatar, EnemyCard } from "../SessionRows";
 
 export default function RowTop(props: { session: SessionType; scale: number }) {
   const swapping = props.session.me.live && props.session.globals.swapping;
@@ -15,7 +15,9 @@ export default function RowTop(props: { session: SessionType; scale: number }) {
   const full =
     props.session.enemies.length === 1 || props.session.enemies.length === 3;
   const enemy = full
-    ? props.session.enemies[props.session.enemies.length === 1 ? 0 : 2]
+    ? props.session.enemies.find(
+        (item) => item.spot === (props.session.enemies.length === 1 ? 1 : 2)
+      )
     : null;
   const callable = full
     ? !enemy!.called &&
@@ -65,14 +67,22 @@ export default function RowTop(props: { session: SessionType; scale: number }) {
             <div
               className="h-20 w-20 rounded-xl overflow-hidden absolute z-10"
               dangerouslySetInnerHTML={{
-                __html: enemy!.avatar,
+                __html: enemy!.called
+                  ? calledAvatar(enemy!.avatar)
+                  : enemy!.avatar,
               }}
             ></div>
             <div
               className="m-2 h-16 w-16 rounded-xl bg-contrast duration-300 absolute animate-ping"
               style={{
                 display: enemy!.live || swapping || callable! ? "" : "none",
-                backgroundColor: swapping ? "orange" : callable! ? "red" : "",
+                backgroundColor: enemy!.called
+                  ? "gold"
+                  : swapping
+                  ? "orange"
+                  : callable!
+                  ? "red"
+                  : "",
               }}
             ></div>
           </div>

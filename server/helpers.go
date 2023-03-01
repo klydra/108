@@ -36,15 +36,31 @@ func nextPlayer(name string, players []Player, globals Globals) (int, *apis.ApiE
 
 	if globals.Direction {
 		if index == len(players)-1 {
-			return 0, nil
+			if players[0].Cards == 0 {
+				return nextPlayer(players[0].Name, players, globals)
+			} else {
+				return 0, nil
+			}
 		} else {
-			return index + 1, nil
+			if players[index+1].Cards == 0 {
+				return nextPlayer(players[index+1].Name, players, globals)
+			} else {
+				return index + 1, nil
+			}
 		}
 	} else {
 		if index == 0 {
-			return len(players) - 1, nil
+			if players[len(players)-1].Cards == 0 {
+				return nextPlayer(players[len(players)-1].Name, players, globals)
+			} else {
+				return len(players) - 1, nil
+			}
 		} else {
-			return index - 1, nil
+			if players[index-1].Cards == 0 {
+				return nextPlayer(players[index-1].Name, players, globals)
+			} else {
+				return index - 1, nil
+			}
 		}
 	}
 }
