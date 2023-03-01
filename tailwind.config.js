@@ -22,6 +22,9 @@ module.exports = {
         "card-icon-inner": "2.5rem",
         "card-icon-border": "0.8rem",
       },
+      animation: {
+        "spin-slow": "spin 10s linear infinite",
+      },
     },
     colors: {
       background: "#1A1B1E",
@@ -36,6 +39,10 @@ module.exports = {
       "card-back": "#000000",
       "card-back-text": "#1C18F0",
       "table-background": "#666666",
+      "table-leave": "#EE3B3B",
+      "avatar-swapping": "orange",
+      "avatar-callable": "red",
+      "avatar-called": "gold",
       contrast: "#FFFFFF",
     },
   },

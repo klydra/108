@@ -469,7 +469,7 @@ func main() {
 			}
 
 			// Check if player is in game
-			if len(player.GetString("game")) != 0 {
+			if len(player.GetString("game")) == 0 {
 				return apis.NewBadRequestError("Not participating in any game.", nil)
 			}
 

@@ -20,6 +20,8 @@ import StackDraw from "../components/game/session/stacks/StackDraw";
 import StackPlay from "../components/game/session/stacks/StackPlay";
 import SessionWish from "../components/game/session/SessionWish";
 import SessionBackground from "../components/game/SessionBackground";
+import SessionDirection from "../components/game/session/SessionDirection";
+import SessionLeave from "../components/game/session/SessionLeave";
 
 interface GameProps {
   game: string;
@@ -170,7 +172,7 @@ export default class Game extends Component<GameProps, GameState> {
       showNotification({
         autoClose: API_NOTIFICATION_NOTICE_TIMEOUT,
         message:
-          "The game has ended. Congratulations to the winner" +
+          "The game has ended.\nCongratulations to the winner" +
           (this.state.game.rules.king ? "" : "s") +
           "!",
         color: "violet",
@@ -194,6 +196,8 @@ export default class Game extends Component<GameProps, GameState> {
             <StackDraw session={session!} animator={this.state.animator} />
             <StackPlay session={session!} animator={this.state.animator} />
             <SessionWish session={session!} />
+            <SessionDirection session={session!} />
+            <SessionLeave navigate={this.props.navigate} />
           </>
         ) : (
           <div className="px-[5%] py-[8%] h-[100vh] w-[100vw] flex flex-row fixed justify-evenly items-center gap-x-[1.5rem]">
