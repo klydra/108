@@ -9,6 +9,8 @@ export default function SessionLeave(props: { navigate: NavigateFunction }) {
     <div
       className="absolute top-[2rem] left-[2rem] p-3 -z-10 rounded-2xl w-16 aspect-square bg-table-leave duration-200 hover:scale-110 cursor-pointer"
       onClick={async () => {
+        props.navigate("/");
+
         const swap = await sessionLeave();
         if (swap["code"] !== 200) {
           showNotification({
@@ -17,10 +19,7 @@ export default function SessionLeave(props: { navigate: NavigateFunction }) {
             color: "red",
             icon: <SettingsOutlined />,
           });
-          return;
         }
-
-        props.navigate("/");
       }}
     >
       <svg viewBox="0 0 1000 1000">

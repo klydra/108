@@ -1,6 +1,10 @@
 import { SessionType } from "../../../../models/Session";
 import { CardType, codeToType, typeToCode } from "../../../../models/Card";
-import { API_NOTIFICATION_GAME_TIMEOUT, gamePlay } from "../../../../api/API";
+import {
+  API_NOTIFICATION_GAME_TIMEOUT,
+  gamePlay,
+  gameThrow,
+} from "../../../../api/API";
 import { showNotification } from "@mantine/notifications";
 import { PlayArrow } from "@mui/icons-material";
 import CardFront from "../../../card/front/CardFront";
@@ -41,14 +45,28 @@ export default function RowBottom(props: {
               <div
                 className="cursor-pointer hover:-translate-y-3 hover:scale-110 duration-200 w-fit ease-out"
                 onClick={async () => {
-                  const play = await gamePlay(typeToCode(card));
-                  if (play["code"] !== 200) {
-                    showNotification({
-                      autoClose: API_NOTIFICATION_GAME_TIMEOUT,
-                      message: play["message"] ?? "An unknown error occurred.",
-                      color: "red",
-                      icon: <PlayArrow />,
-                    });
+                  if (!props.session.me.live) {
+                    const smash = await gameThrow(typeToCode(card));
+                    if (smash["code"] !== 200) {
+                      showNotification({
+                        autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                        message:
+                          smash["message"] ?? "An unknown error occurred.",
+                        color: "red",
+                        icon: <PlayArrow />,
+                      });
+                    }
+                  } else {
+                    const play = await gamePlay(typeToCode(card));
+                    if (play["code"] !== 200) {
+                      showNotification({
+                        autoClose: API_NOTIFICATION_GAME_TIMEOUT,
+                        message:
+                          play["message"] ?? "An unknown error occurred.",
+                        color: "red",
+                        icon: <PlayArrow />,
+                      });
+                    }
                   }
                 }}
               >

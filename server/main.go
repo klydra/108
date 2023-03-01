@@ -658,7 +658,7 @@ func main() {
 					for {
 						drawn = append(drawn, resetCard(stack[len(stack)-1]))
 						stack = stack[:len(stack)-2]
-						if len(stack) > 1 && drawn[len(drawn)-1][1] != stack[0][1] {
+						if len(stack) <= 1 || drawn[len(drawn)-1][1] == stack[0][1] {
 							break
 						}
 					}
@@ -667,7 +667,7 @@ func main() {
 						index := rand.Intn(len(stack) - 2)
 						drawn = append(drawn, resetCard(stack[index]))
 						stack = append(stack[:index], stack[index+1:]...)
-						if len(stack) <= 1 && drawn[len(drawn)-1][1] != stack[0][1] {
+						if len(stack) <= 1 || drawn[len(drawn)-1][1] == stack[0][1] {
 							break
 						}
 					}
@@ -1056,7 +1056,7 @@ func main() {
 			}
 
 			// Checking if card is wish or if previous card has matching color
-			if card[0] != 'w' && card[0] != 'j' && stack[0][0] != card[0] && stack[0][1] != card[1] {
+			if card[0] != 'w' && card[0] != 'j' && (stack[0][0] != card[0] || stack[0][1] != card[1]) {
 				return apis.NewBadRequestError("Card not matching.", nil)
 			}
 
@@ -1100,6 +1100,9 @@ func main() {
 				if card[0] == 'p' {
 					globals.Stacking = true
 				}
+			} else {
+				globals.Live = players[playerIndex].Name
+				globals.Drawable = false
 			}
 
 			// Check if player has won
