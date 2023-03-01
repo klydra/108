@@ -34,6 +34,7 @@ export enum CardIconWeight {
 export type CardType = {
   color: CardColor;
   face: CardFace;
+  order?: number | undefined;
 };
 
 function codeToFace(card: string) {
@@ -89,9 +90,20 @@ function codeToColor(card: string) {
 }
 
 export function codeToType(card: string) {
+  const face = codeToFace(card);
+  const color = codeToColor(card);
+
+  const faceOrder = Object.values(CardFace).findIndex(
+    (value) => value === face
+  );
+  const colorOrder = Object.values(CardColor).findIndex(
+    (value) => value === color
+  );
+
   return {
-    face: codeToFace(card),
-    color: codeToColor(card),
+    face,
+    color,
+    order: Object.keys(CardColor).length * colorOrder + faceOrder,
   } as CardType;
 }
 

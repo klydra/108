@@ -17,6 +17,7 @@ export type SessionMe = {
   called: boolean;
   host: boolean;
   live: boolean;
+  spot: number;
 };
 
 export type SessionEnemy = {
@@ -25,6 +26,7 @@ export type SessionEnemy = {
   cards: number;
   called: boolean;
   live: boolean;
+  spot: number;
 };
 
 function avatar(name: string) {
@@ -43,6 +45,7 @@ export function sessionConstruct(player: PlayerType, game: GameType) {
       called: me!.called ?? false,
       host: game.players[0].name === player.name,
       live: me!.name === game.globals.live,
+      spot: game.players.findIndex((item) => item.name === me!.name),
     },
     enemies: enemies.map((enemy) => {
       return {
@@ -51,6 +54,7 @@ export function sessionConstruct(player: PlayerType, game: GameType) {
         cards: enemy.cards,
         called: enemy.called,
         live: enemy.name === game.globals.live,
+        spot: game.players.findIndex((item) => item.name === enemy.name),
       };
     }),
     order: game.players.map((item) => item.name),
