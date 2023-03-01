@@ -14,7 +14,7 @@ type GamePlayer = {
 type GameGlobals = {
   live: string;
   direction: boolean;
-  stacking: boolean;
+  stacking: number;
   swapping: boolean;
   drawable: boolean;
 };

@@ -52,7 +52,7 @@ func main() {
 	app.RootCmd.PersistentFlags().StringSliceVar(
 		&corsOrigins,
 		"corsOrigins",
-		[]string{"https://108.cards", "https://108cards.pages.dev"},
+		[]string{"https://108.cards"},
 		"CORS allowed domain origins list",
 	)
 
@@ -178,58 +178,79 @@ func main() {
 					return err
 				}
 
-				// Check if game will end
-				if len(players) <= 2 {
-					// Stop game if only one player
-					players[0].Called = false
-
-					// Restore game defaults
-					game.Set("globals", defaultGlobals())
-				} else {
-					// Shifting turn if necessary
-					if globals.Live == player.GetString("name") {
-						// Evaluating next player
-						next, err := nextPlayer(player.GetString("name"), players, globals)
-						if err != nil {
-							return err
-						}
-
-						globals.Live = players[next].Name
-
-						// Save globals to game
-						globalsUpdated, err := globalsFromStruct(globals)
-						if err != nil {
-							return err
-						}
-
-						game.Set("globals", globalsUpdated)
-					}
-
-					// Remove player from ongoing game
-					index, err := playerIndexByName(player.GetString("name"), players)
+				// Shifting turn if necessary
+				if globals.Live == player.GetString("name") {
+					// Evaluating next player
+					next, err := nextPlayer(player.GetString("name"), players, globals)
 					if err != nil {
 						return err
 					}
-					players = append(players[:index], players[index+1:]...)
+
+					globals.Live = players[next].Name
+
+					// Save globals to game
+					globalsUpdated, err := globalsFromStruct(globals)
+					if err != nil {
+						return err
+					}
+
+					game.Set("globals", globalsUpdated)
 				}
 
-				// Save players to game
-				playersUpdated, err := playersFromStruct(players)
+				// Remove player from ongoing game
+				index, err := playerIndexByName(player.GetString("name"), players)
 				if err != nil {
 					return err
 				}
+				players = append(players[:index], players[index+1:]...)
 
-				game.Set("players", playersUpdated)
+				// Check if game will end
+				if len(players) == 1 {
+					// Stop game if only one player
+					players[0].Called = false
+					players[0].Cards = 0
+
+					// Restore game defaults
+					game.Set("globals", defaultGlobals())
+
+					// Reset player
+					player, err := getPlayerRecordByName(app, players[0].Name)
+					if err != nil {
+						return err
+					}
+
+					player.Set("hand", defaultJson())
+
+					// Save changes
+					if err := savePlayer(app, player); err != nil {
+						return err
+					}
+				}
+
+				if len(players) > 0 {
+					// Save players to game
+					playersUpdated, err := playersFromStruct(players)
+					if err != nil {
+						return err
+					}
+
+					// Save changes
+					game.Set("players", playersUpdated)
+					if err := saveGame(app, game); err != nil {
+						return err
+					}
+				} else {
+					// Close session if empty
+					if err := deleteGame(app, game); err != nil {
+						return err
+					}
+				}
 
 				// Remove game from player
 				player.Set("game", "")
 				player.Set("hand", defaultJson())
 
 				// Save changes
-				if err := saveGame(app, game); err != nil {
-					return err
-				}
-
 				if err := savePlayer(app, player); err != nil {
 					return err
 				}
@@ -318,7 +339,41 @@ func main() {
 				return apis.NewBadRequestError("Not enough players to start.", err)
 			}
 
-			if !rules.Unlimited {
+			if rules.Bottomless {
+				for i := 0; i < len(players); i++ {
+					var hand []string
+
+					for j := 0; j < rules.Count; j++ {
+						hand = append(hand, randomCard())
+					}
+
+					players[i].Cards = rules.Count
+					players[i].Called = false
+
+					player, err := getPlayerRecordByName(app, players[i].Name)
+					if err != nil {
+						return err
+					}
+
+					handUpdate, err := handFromStruct(hand)
+					if err != nil {
+						return err
+					}
+
+					player.Set("hand", handUpdate)
+
+					if err := savePlayer(app, player); err != nil {
+						return err
+					}
+				}
+
+				stackUpdate, err := stackFromStruct([]string{randomCard()})
+				if err != nil {
+					return err
+				}
+
+				game.Set("stack", stackUpdate)
+			} else if !rules.Unlimited {
 				give := len(players) * rules.Count
 				var stack []string
 
@@ -341,6 +396,7 @@ func main() {
 					}
 
 					players[i].Cards = rules.Count
+					players[i].Called = false
 
 					player, err := getPlayerRecordByName(app, players[i].Name)
 					if err != nil {
@@ -373,6 +429,9 @@ func main() {
 						index := rand.Intn(len(DECK) - 1)
 						hand = append(hand, DECK[index])
 					}
+
+					players[i].Cards = rules.Count
+					players[i].Called = false
 
 					player, err := getPlayerRecordByName(app, players[i].Name)
 					if err != nil {
@@ -473,7 +532,7 @@ func main() {
 				return apis.NewBadRequestError("Not participating in any game.", nil)
 			}
 
-			// Retrieve game data
+			// Remove player from game
 			game, err := getGameRecordByCode(app, player.GetString("game"))
 			if err != nil {
 				return err
@@ -489,32 +548,23 @@ func main() {
 				return err
 			}
 
-			// Check if game will end
-			if len(players) <= 2 {
-				// Stop game if only one player
-				players[0].Called = false
-
-				// Restore game defaults
-				game.Set("globals", defaultGlobals())
-			} else {
-				// Shifting turn if necessary
-				if globals.Live == player.GetString("name") {
-					// Evaluating next player
-					next, err := nextPlayer(player.GetString("name"), players, globals)
-					if err != nil {
-						return err
-					}
-
-					globals.Live = players[next].Name
-
-					// Save globals to game
-					globalsUpdated, err := globalsFromStruct(globals)
-					if err != nil {
-						return err
-					}
-
-					game.Set("globals", globalsUpdated)
+			// Shifting turn if necessary
+			if globals.Live == player.GetString("name") {
+				// Evaluating next player
+				next, err := nextPlayer(player.GetString("name"), players, globals)
+				if err != nil {
+					return err
 				}
+
+				globals.Live = players[next].Name
+
+				// Save globals to game
+				globalsUpdated, err := globalsFromStruct(globals)
+				if err != nil {
+					return err
+				}
+
+				game.Set("globals", globalsUpdated)
 			}
 
 			// Remove player from ongoing game
@@ -524,23 +574,53 @@ func main() {
 			}
 			players = append(players[:index], players[index+1:]...)
 
-			// Save players to game
-			playersUpdated, err := playersFromStruct(players)
-			if err != nil {
-				return err
+			// Check if game will end
+			if len(players) == 1 {
+				// Stop game if only one player
+				players[0].Called = false
+				players[0].Cards = 0
+
+				// Restore game defaults
+				game.Set("globals", defaultGlobals())
+
+				// Reset player
+				player, err := getPlayerRecordByName(app, players[0].Name)
+				if err != nil {
+					return err
+				}
+
+				player.Set("hand", defaultJson())
+
+				// Save changes
+				if err := savePlayer(app, player); err != nil {
+					return err
+				}
 			}
 
-			game.Set("players", playersUpdated)
+			if len(players) > 0 {
+				// Save players to game
+				playersUpdated, err := playersFromStruct(players)
+				if err != nil {
+					return err
+				}
+
+				// Save changes
+				game.Set("players", playersUpdated)
+				if err := saveGame(app, game); err != nil {
+					return err
+				}
+			} else {
+				// Close session if empty
+				if err := deleteGame(app, game); err != nil {
+					return err
+				}
+			}
 
 			// Remove game from player
 			player.Set("game", "")
 			player.Set("hand", defaultJson())
 
 			// Save changes
-			if err := saveGame(app, game); err != nil {
-				return err
-			}
-
 			if err := savePlayer(app, player); err != nil {
 				return err
 			}
@@ -622,43 +702,58 @@ func main() {
 
 			var drawn []string
 
-			if stack[0][0] == 'p' && globals.Stacking {
+			if stack[0][0] == 'p' && globals.Stacking > 0 {
 				// Drawing 2 * n cards
-				for j := 0; j < 2; j++ {
-					if rules.Ordered {
-						drawn = append(drawn, resetCard(stack[len(stack)-1]))
-						stack = stack[:len(stack)-2]
-					} else {
-						index := rand.Intn(len(stack)-3) + 1
-						drawn = append(drawn, resetCard(stack[index]))
-						stack = append(stack[:index], stack[index+1:]...)
-					}
-					if len(stack) <= 1 {
-						break
+				for i := 0; i < globals.Stacking; i++ {
+					for j := 0; j < 2; j++ {
+						if rules.Bottomless {
+							drawn = append(drawn, randomCard())
+						} else if rules.Ordered {
+							drawn = append(drawn, resetCard(stack[len(stack)-1]))
+							stack = stack[:len(stack)-2]
+						} else {
+							index := rand.Intn(len(stack)-3) + 1
+							drawn = append(drawn, resetCard(stack[index]))
+							stack = append(stack[:index], stack[index+1:]...)
+						}
+						if len(stack) <= 3 {
+							break
+						}
 					}
 				}
-			} else if stack[0][0] == 'j' && globals.Stacking {
-				// Drawing 4 * n cards
-				for j := 0; j < 4; j++ {
-					if rules.Ordered {
-						drawn = append(drawn, resetCard(stack[len(stack)-1]))
-						stack = stack[:len(stack)-2]
-					} else {
-						index := rand.Intn(len(stack)-3) + 1
-						drawn = append(drawn, resetCard(stack[index]))
-						stack = append(stack[:index], stack[index+1:]...)
-					}
-					if len(stack) <= 1 {
-						break
+			} else if stack[0][0] == 'j' && globals.Stacking > 0 {
+				for i := 0; i < globals.Stacking; i++ {
+					for j := 0; j < 4; j++ {
+						if rules.Bottomless {
+							drawn = append(drawn, randomCard())
+						} else if rules.Ordered {
+							drawn = append(drawn, resetCard(stack[len(stack)-1]))
+							stack = stack[:len(stack)-2]
+						} else {
+							index := rand.Intn(len(stack)-3) + 1
+							drawn = append(drawn, resetCard(stack[index]))
+							stack = append(stack[:index], stack[index+1:]...)
+						}
+						if len(stack) <= 3 {
+							break
+						}
 					}
 				}
 			} else if rules.Unlimited {
 				// Drawing 1 card and then continue to draw until playable
-				if rules.Ordered {
+				if rules.Bottomless {
+					for {
+						drawn = append(drawn, randomCard())
+						stack = stack[:len(stack)-2]
+						if drawn[len(drawn)-1][1] == stack[0][1] || drawn[len(drawn)-1][0] == stack[0][0] || drawn[len(drawn)-1][1] == 'd' {
+							break
+						}
+					}
+				} else if rules.Ordered {
 					for {
 						drawn = append(drawn, resetCard(stack[len(stack)-1]))
 						stack = stack[:len(stack)-2]
-						if len(stack) <= 1 || drawn[len(drawn)-1][1] == stack[0][1] {
+						if len(stack) <= 1 || drawn[len(drawn)-1][1] == stack[0][1] || drawn[len(drawn)-1][0] == stack[0][0] || drawn[len(drawn)-1][1] == 'd' {
 							break
 						}
 					}
@@ -667,14 +762,16 @@ func main() {
 						index := rand.Intn(len(stack) - 2)
 						drawn = append(drawn, resetCard(stack[index]))
 						stack = append(stack[:index], stack[index+1:]...)
-						if len(stack) <= 1 || drawn[len(drawn)-1][1] == stack[0][1] {
+						if len(stack) <= 1 || drawn[len(drawn)-1][1] == stack[0][1] || drawn[len(drawn)-1][0] == stack[0][0] || drawn[len(drawn)-1][1] == 'd' {
 							break
 						}
 					}
 				}
 			} else {
 				// Drawing 1 card
-				if rules.Ordered {
+				if rules.Bottomless {
+					drawn = append(drawn, randomCard())
+				} else if rules.Ordered {
 					drawn = append(drawn, resetCard(stack[0]))
 					stack = append(stack, stack[1:]...)
 				} else {
@@ -688,29 +785,14 @@ func main() {
 
 			// Saving card to arrays and setting player state
 			players[playerIndex].Cards = len(hand)
-			globals.Stacking = false
-			globals.Drawable = false
 
 			// Checking if called state will be invalidated
 			if len(hand) > 1 && players[playerIndex].Called {
 				players[playerIndex].Called = false
 			}
 
-			if rules.Unlimited {
-				for j := 0; j < len(drawn); j++ {
-					if drawn[j][0] == stack[0][0] || drawn[j][1] == stack[0][1] {
-						// Shifting turn to next player
-						next, err := nextPlayer(player.GetString("name"), players, globals)
-						if err != nil {
-							return err
-						}
-
-						globals.Live = players[next].Name
-						globals.Drawable = true
-						globals.Stacking = false
-						break
-					}
-				}
+			if rules.Unlimited && globals.Stacking == 0 {
+				globals.Drawable = false
 			} else {
 				// Shifting turn to next player
 				next, err := nextPlayer(player.GetString("name"), players, globals)
@@ -720,7 +802,7 @@ func main() {
 
 				globals.Live = players[next].Name
 				globals.Drawable = true
-				globals.Stacking = false
+				globals.Stacking = 0
 			}
 
 			// Update state
@@ -835,7 +917,7 @@ func main() {
 			}
 
 			// Checking if previous card requires draw / stack
-			if globals.Stacking {
+			if globals.Stacking > 0 {
 				if stack[0][0] == 'p' {
 					if !rules.Stack2 {
 						if card[0] == 'p' {
@@ -885,7 +967,9 @@ func main() {
 
 			// Set stacking state
 			if card[0] == 'j' || card[0] == 'p' {
-				globals.Stacking = true
+				globals.Stacking = globals.Stacking + 1
+			} else {
+				globals.Stacking = 0
 			}
 
 			// Set swapping state
@@ -910,10 +994,10 @@ func main() {
 
 				// Applying traits for next player
 				globals.Drawable = true
-				if card[0] == 'p' { // TODO: Check stacking rule
-					globals.Stacking = true
+				if card[0] == 'p' {
+					globals.Stacking = globals.Stacking + 1
 				} else {
-					globals.Stacking = false
+					globals.Stacking = 0
 				}
 				globals.Live = players[next].Name
 			}
@@ -1056,7 +1140,7 @@ func main() {
 			}
 
 			// Checking if card is wish or if previous card has matching color
-			if card[0] != 'w' && card[0] != 'j' && (stack[0][0] != card[0] || stack[0][1] != card[1]) {
+			if stack[0][0] != card[0] || (card[0] != 'w' && card[0] != 'j' && stack[0][1] != card[1]) {
 				return apis.NewBadRequestError("Card not matching.", nil)
 			}
 
@@ -1070,7 +1154,7 @@ func main() {
 				globals.Swapping = true
 			}
 
-			// Play card from inventory to stack
+			// Play card from hand to stack
 			hand = append(hand[:index], hand[index+1:]...)
 			stack = append([]string{card}, stack...)
 			players[playerIndex].Cards = len(hand)
@@ -1079,7 +1163,7 @@ func main() {
 			}
 
 			// If player action isn't pending, assigning next player
-			if card[0] != 'j' && card[0] != 'w' && (card[0] != '7' && !rules.Swap) {
+			if card[0] != 'j' && card[0] != 'w' && (card[0] != '7' || !rules.Swap) {
 				next, err := nextPlayer(player.GetString("name"), players, globals)
 				if err != nil {
 					return err
@@ -1098,7 +1182,7 @@ func main() {
 				globals.Drawable = true
 				globals.Swapping = false
 				if card[0] == 'p' {
-					globals.Stacking = true
+					globals.Stacking = 1
 				}
 			} else {
 				globals.Live = players[playerIndex].Name
@@ -1481,7 +1565,9 @@ func main() {
 			// Draw 2 cards if possible
 			draw := 2
 			for {
-				if rules.Ordered {
+				if rules.Bottomless {
+					targetHand = append(targetHand, randomCard())
+				} else if rules.Ordered {
 					targetHand = append(targetHand, stack[len(stack)-1])
 					stack = append(stack, stack[1:]...)
 				} else {

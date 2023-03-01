@@ -76,7 +76,7 @@ function codeToFace(card: string) {
 }
 
 function codeToColor(card: string) {
-  if (card.length <= 1) return CardColor.DARK;
+  if (card.length <= 0) return CardColor.DARK;
 
   switch (card.charAt(1)) {
     default:

@@ -34,7 +34,7 @@ func defaultGlobalsStruct() Globals {
 		Live:      "",
 		Direction: true,
 		Drawable:  true,
-		Stacking:  false,
+		Stacking:  0,
 		Swapping:  false,
 	}
 }
@@ -224,13 +224,6 @@ func saveGame(app *pocketbase.PocketBase, game *models.Record) *apis.ApiError {
 // ---------------------------------------------------------------
 // delete records
 // ---------------------------------------------------------------
-
-func deletePlayer(app *pocketbase.PocketBase, player *models.Record) *apis.ApiError {
-	if err := app.Dao().DeleteRecord(player); err != nil {
-		return apis.NewApiError(500, "Can't delete player record.", err)
-	}
-	return nil
-}
 
 func deleteGame(app *pocketbase.PocketBase, game *models.Record) *apis.ApiError {
 	if err := app.Dao().DeleteRecord(game); err != nil {

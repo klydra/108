@@ -4,6 +4,7 @@ import (
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/models"
+	"math/rand"
 )
 
 // ---------------------------------------------------------------
@@ -71,6 +72,10 @@ func resetCard(card string) string {
 	}
 
 	return card
+}
+
+func randomCard() string {
+	return DECK[rand.Intn(len(DECK)-1)]
 }
 
 func participating(player *models.Record) *apis.ApiError {

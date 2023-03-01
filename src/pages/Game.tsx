@@ -22,6 +22,7 @@ import SessionWish from "../components/game/session/SessionWish";
 import SessionBackground from "../components/game/SessionBackground";
 import SessionDirection from "../components/game/session/SessionDirection";
 import SessionLeave from "../components/game/session/SessionLeave";
+import SessionHold from "../components/game/session/SessionHold";
 
 interface GameProps {
   game: string;
@@ -196,6 +197,7 @@ export default class Game extends Component<GameProps, GameState> {
             <StackDraw session={session!} animator={this.state.animator} />
             <StackPlay session={session!} animator={this.state.animator} />
             <SessionWish session={session!} />
+            <SessionHold session={session!} />
             <SessionDirection session={session!} />
             <SessionLeave navigate={this.props.navigate} />
           </>
@@ -204,6 +206,7 @@ export default class Game extends Component<GameProps, GameState> {
             <LobbyPlayers session={session} />
             <LobbySettings session={session} />
             <LobbyStart session={session} />
+            <SessionLeave navigate={this.props.navigate} />
           </div>
         )}
       </>

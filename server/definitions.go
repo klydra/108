@@ -22,7 +22,7 @@ type Player struct {
 type Globals struct {
 	Live      string `json:"live" xml:"live"`
 	Direction bool   `json:"direction" xml:"direction"` // Direction of turns of players (true is clockwise)
-	Stacking  bool   `json:"stacking" xml:"stacking"`
+	Stacking  int    `json:"stacking" xml:"stacking"`
 	Swapping  bool   `json:"swapping" xml:"swapping"`
 	Drawable  bool   `json:"drawable" xml:"drawable"`
 }
