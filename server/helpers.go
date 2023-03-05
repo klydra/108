@@ -70,7 +70,6 @@ func resetCard(card string) string {
 	if card[0] == 'j' || card[0] == 'w' {
 		card = string(card[0]) + string('d')
 	}
-
 	return card
 }
 
