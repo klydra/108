@@ -1,7 +1,8 @@
 ![](public/icon-256x256.png)
 
 # 108.cards
-An open-source, simple variation of the basic UNO game gone pastel.
+An open-source, simple variation of the basic UNO game gone pastel.<br>
+Play for free on [108.cards](https://108.cards)!
 
 <br>
 
