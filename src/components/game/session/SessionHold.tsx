@@ -15,7 +15,8 @@ export default function SessionHold(props: { session: SessionType }) {
   if (
     !props.session.me.live ||
     props.session.globals.drawable ||
-    !props.session.rules.hold
+    !props.session.rules.hold ||
+    props.session.globals.swapping
   )
     return null;
 

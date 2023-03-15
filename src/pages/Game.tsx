@@ -23,6 +23,7 @@ import SessionBackground from "../components/game/SessionBackground";
 import SessionDirection from "../components/game/session/SessionDirection";
 import SessionLeave from "../components/game/session/SessionLeave";
 import SessionHold from "../components/game/session/SessionHold";
+import LobbyCode from "../components/game/lobby/LobbyCode";
 
 interface GameProps {
   game: string;
@@ -206,6 +207,7 @@ export default class Game extends Component<GameProps, GameState> {
             <LobbyPlayers session={session} />
             <LobbySettings session={session} />
             <LobbyStart session={session} />
+            <LobbyCode game={this.props.game} />
             <SessionLeave navigate={this.props.navigate} />
           </div>
         )}

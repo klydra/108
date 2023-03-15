@@ -744,7 +744,6 @@ func main() {
 				if rules.Bottomless {
 					for {
 						drawn = append(drawn, randomCard())
-						stack = stack[:len(stack)-2]
 						if drawn[len(drawn)-1][1] == stack[0][1] || drawn[len(drawn)-1][0] == stack[0][0] || drawn[len(drawn)-1][1] == 'd' {
 							break
 						}
@@ -994,11 +993,6 @@ func main() {
 
 				// Applying traits for next player
 				globals.Drawable = true
-				if card[0] == 'p' {
-					globals.Stacking = globals.Stacking + 1
-				} else {
-					globals.Stacking = 0
-				}
 				globals.Live = players[next].Name
 			}
 
@@ -1181,12 +1175,13 @@ func main() {
 				globals.Live = players[next].Name
 				globals.Drawable = true
 				globals.Swapping = false
-				if card[0] == 'p' {
-					globals.Stacking = 1
-				}
 			} else {
 				globals.Live = players[playerIndex].Name
 				globals.Drawable = false
+			}
+
+			if card[0] == 'p' || card[0] == 'j' {
+				globals.Stacking = 1
 			}
 
 			// Check if player has won
@@ -1300,6 +1295,11 @@ func main() {
 			// Update drawing status
 			if globals.Drawable {
 				return apis.NewBadRequestError("User is still drawable.", err)
+			}
+
+			// Update drawing status
+			if globals.Swapping {
+				return apis.NewBadRequestError("User is still swapping.", err)
 			}
 
 			// Shifting turn to next player
@@ -1457,11 +1457,6 @@ func main() {
 				return err
 			}
 
-			// Checking if player has turn
-			if err := playing(player, globals); err != nil {
-				return err
-			}
-
 			// Retrieving player status
 			playerIndex, err := playerIndexByName(player.GetString("name"), players)
 			if err != nil {
@@ -1476,6 +1471,11 @@ func main() {
 			// Check if player can call
 			if players[playerIndex].Cards > 2 {
 				return apis.NewBadRequestError("You have too many cards to call.", err)
+			} else if players[playerIndex].Cards == 2 {
+				// Checking if player has turn
+				if err := playing(player, globals); err != nil {
+					return err
+				}
 			}
 
 			// Set player as called
@@ -1687,9 +1687,6 @@ func main() {
 			players[targetIndex].Called = called1
 			players[playerIndex].Called = called2
 
-			// Finish switching
-			globals.Swapping = false
-
 			// Advancing turn
 			next, err := nextPlayer(player.GetString("name"), players, globals)
 			if err != nil {
@@ -1699,6 +1696,7 @@ func main() {
 			// Applying traits for next player
 			globals.Live = players[next].Name
 			globals.Drawable = true
+			globals.Swapping = false
 
 			// Update state
 			playersUpdate, err := playersFromStruct(players)

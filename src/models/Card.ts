@@ -38,7 +38,7 @@ export type CardType = {
 };
 
 function codeToFace(card: string) {
-  if (card.length <= 0) return CardFace.NUMBER_0;
+  if (typeof card !== "string") return CardFace.NUMBER_0;
 
   switch (card.charAt(0)) {
     default:
@@ -76,7 +76,7 @@ function codeToFace(card: string) {
 }
 
 function codeToColor(card: string) {
-  if (card.length <= 0) return CardColor.DARK;
+  if (typeof card !== "string") return CardColor.DARK;
 
   switch (card.charAt(1)) {
     default:

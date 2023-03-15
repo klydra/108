@@ -52,7 +52,7 @@ export default function HomeRules(props: { theme: CardColor }) {
         <Column>
           <Entry
             title="stacks"
-            text="Draw-2 cards and draw-4 cards are stackable."
+            text="Draw-2 cards and draw-4 cards are stackable and add their draw values together."
           >
             <CardFront
               card={{
@@ -95,7 +95,7 @@ export default function HomeRules(props: { theme: CardColor }) {
           </Entry>
           <Entry
             title="million cards"
-            text="You need to draw until you get a matching card."
+            text="You need to draw again and again until you get a matching card."
           >
             <div className="h-52">
               <CardBack />

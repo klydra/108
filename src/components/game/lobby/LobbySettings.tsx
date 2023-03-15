@@ -47,7 +47,7 @@ export default function LobbySettings(props: { session: SessionType }) {
           <Switch
             disabled={!props.session.me.host}
             color="gray"
-            checked={props.session.rules.ordered}
+            checked={!props.session.rules.ordered}
             onClick={() =>
               rules(props.session, {
                 ordered: !props.session.rules.ordered,
